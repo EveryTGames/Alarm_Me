@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -68,21 +67,18 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
             appIcon.setImageDrawable(itemData.appIcon);
             switchToggle.setOnCheckedChangeListener(null);
             switchToggle.setChecked(itemData.isToggled);
-            switchToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    itemData.isToggled = isChecked;
-                    if (isChecked) {
-                        MainActivity.toggledApps.add(itemData.packageName);
-                        _adapter.showInputDialog(_adapter.context, itemData.packageName, switchToggle);
-                    } else {
-                        MainActivity.toggledApps.remove(itemData.packageName);
-                        //u will also make the logivc for saving the texts like the prefered command and prefered name
-                        // u will use shared preference normally
-                        // key: "package name"    value : "<preferered sender name><"or"  or "and" to determine if the user wants the sender name and one of the content messages to match in order to trigger the alarm, or just want any one of them>:#94710341#:<prefered content message 1>:#94710341#:<prefered content message 2 ... and so on>"
-                    }
-                    MainActivity.saveSet();
+            switchToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                itemData.isToggled = isChecked;
+                if (isChecked) {
+                    MainActivity.toggledApps.add(itemData.packageName);
+                    _adapter.showInputDialog(_adapter.context, itemData.packageName, switchToggle);
+                } else {
+                    MainActivity.toggledApps.remove(itemData.packageName);
+                    //u will also make the logivc for saving the texts like the prefered command and prefered name
+                    // u will use shared preference normally
+                    // key: "package name"    value : "<preferered sender name><"or"  or "and" to determine if the user wants the sender name and one of the content messages to match in order to trigger the alarm, or just want any one of them>:#94710341#:<prefered content message 1>:#94710341#:<prefered content message 2 ... and so on>"
                 }
+                MainActivity.saveSet();
             });
 
             // Log.d("infoo", "one item view created");
@@ -156,26 +152,16 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
         }
 
         btnAddMore1.setOnClickListener(v ->
-        {
-            Sender.addOne(context, senderNameTexts, senderContainer, null);
-        });
+                Sender.addOne(context, senderNameTexts, senderContainer, null));
 
 
         btnAddMore2.setOnClickListener(v ->
-        {
-            command.addOne(context, commmandsTexts, commandContainer, null);
-
-        });
+                command.addOne(context, commmandsTexts, commandContainer, null));
 
         btnDeleteLast1.setOnClickListener(v ->
-        {
-            Sender.removeOne(senderNameTexts, senderContainer);
-        });
+                Sender.removeOne(senderNameTexts, senderContainer));
         btnDeleteLast2.setOnClickListener(v ->
-        {
-            command.removeOne(commmandsTexts, commandContainer);
-
-        });
+                command.removeOne(commmandsTexts, commandContainer));
 
         btnOk.setOnClickListener(v ->
         {
