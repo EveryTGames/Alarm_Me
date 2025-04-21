@@ -28,7 +28,7 @@ If a notification matches both or one of them ( you control that ), the alarm ac
 - Multi-rule support per app (multiple senders and keywords)
 - Fast and reliable notification listener
 - Simple rule manager (add, edit, delete rules)
-- Upcoming: App search for easier rule assignment
+- App search for easier rule assignment
 
 ---
 
