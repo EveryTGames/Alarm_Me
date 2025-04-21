@@ -254,6 +254,7 @@ class Helper {
             TextsList.add(last);
             lastIndex = 0;
             firstOne = true;
+            btnRemove.setEnabled(false);
             if (data != null) {
                 return;
             }
