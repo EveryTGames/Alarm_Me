@@ -11,7 +11,7 @@ For each app, you can define:
 - **Senders**: Specific names or allow all
 - **Keywords**: Words or phrases that trigger the alarm
 
-If a notification matches both, the alarm activates instantly.
+If a notification matches both or one of them ( you control that ), the alarm activates instantly.
 
 ---
 
