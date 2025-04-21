@@ -9,9 +9,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -28,15 +31,19 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class MainActivity extends AppCompatActivity {
 
     public static int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 5469;
-    public static String ENCODE_SPLIT_SUBs= ":#94710341#:";
-    public static String ENCODE_SPLIT_MAIN= ":#41037124#:";
+    public static String ENCODE_SPLIT_SUBs = ":#94710341#:";
+    public static String ENCODE_SPLIT_MAIN = ":#41037124#:";
 
     int REQUEST_CODE = 59;
     private static final int JOB_ID = 1;
@@ -44,12 +51,14 @@ public class MainActivity extends AppCompatActivity {
 
 
     public static Set<String> toggledApps;
-    public static  SharedPreferences prefs;
-    public static void saveSet()
-    {
-        prefs.edit().putStringSet("toggled_apps",toggledApps).apply();
+    public static SharedPreferences prefs;
+
+    public static void saveSet() {
+        prefs.edit().putStringSet("toggled_apps", toggledApps).apply();
     }
 
+    public static List<app_info> loadedApps;
+    boolean isLoaded = false;
 
 
     @RequiresApi(api = Build.VERSION_CODES.S)
@@ -57,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         int permissionState = ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS);
         // If the permission is not granted, request it.
@@ -70,15 +80,13 @@ public class MainActivity extends AppCompatActivity {
 //        startActivityForResult(intent, REQUEST_CODE);
 
 
-
-
-    prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
+        prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
         toggledApps = prefs.getStringSet("toggled_apps", new HashSet<>());
         // i copied it again bc the returned one was a live set
         //which means any change in it will be changed in the prefs, which will make weird behaviours
         // for my case it will not update after the first load
         toggledApps = new HashSet<>(toggledApps);
-        Log.d("infoo", "toggled apps set is " +toggledApps.size() +" item");
+        Log.d("infoo", "toggled apps set is " + toggledApps.size() + " item");
 
 
         //alarm
@@ -128,14 +136,20 @@ public class MainActivity extends AppCompatActivity {
 //        }, Calendar.getInstance().get(Calendar.HOUR_OF_DAY), Calendar.getInstance().get(Calendar.MINUTE), false);
 
 
-
         Button btnOpenAppList = findViewById(R.id.BtnPref);
-        btnOpenAppList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, toggleAppsActivity.class);
-                startActivity(intent);
-            }
+        btnOpenAppList.setEnabled(false);
+        btnOpenAppList.setOnClickListener(v -> {
+
+            Intent intent = new Intent(MainActivity.this, toggleAppsActivity.class);
+            startActivity(intent);
+
+        });
+
+        loadInstalledAppsAsync(() -> {
+            isLoaded = true;
+            btnOpenAppList.setEnabled(true);
+            Toast.makeText(getApplicationContext(), "Apps loaded", Toast.LENGTH_SHORT).show();
+
         });
 
 //   String[] test = ":text:".split(":");
@@ -143,6 +157,42 @@ public class MainActivity extends AppCompatActivity {
 //    boolean ll = "asdafg".contains("");
         //the output is
 //["", "text1", "text2"]
+    }
+
+    interface AppLoadCallback {
+        void onLoaded();
+    }
+
+    Handler handler = new Handler(Looper.getMainLooper());
+    private void loadInstalledAppsAsync(AppLoadCallback callback) {
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Toast.makeText(getApplicationContext(), "loading Apps...", Toast.LENGTH_SHORT).show();
+
+        executor.execute(() -> {
+              loadInstalledApps();
+
+            handler.post(callback::onLoaded);
+        });
+    }
+
+    private void loadInstalledApps() {
+
+        PackageManager packageManager = getPackageManager();
+        List<ResolveInfo> installedApps = packageManager.queryIntentActivities(
+                new Intent(Intent.ACTION_MAIN, null)
+                        .addCategory(Intent.CATEGORY_LAUNCHER),
+                0);
+
+        Log.d("infoo", "the installed apps list should be retrived with " + installedApps.size() + " of elemetns");
+
+        loadedApps = new ArrayList<>();
+        for (ResolveInfo resolvedInfo : installedApps) {
+
+            boolean isToggled = toggledApps.contains(resolvedInfo.activityInfo.packageName);
+            loadedApps.add(new app_info(resolvedInfo.loadLabel(packageManager).toString(), resolvedInfo.activityInfo.packageName, resolvedInfo.loadIcon(packageManager), isToggled));
+        }
+
     }
 
 
@@ -261,8 +311,6 @@ public class MainActivity extends AppCompatActivity {
 
         super.onRestart();
     }
-
-
 
 
     public boolean stop() {
