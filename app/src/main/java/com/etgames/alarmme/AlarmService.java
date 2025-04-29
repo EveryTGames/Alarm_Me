@@ -18,8 +18,11 @@ Log.d("infoo","the service for the alarm activity started");
         Intent alarmActivityIntent = new Intent(this, AlarmActivity.class);
         alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        alarmActivityIntent.putExtra("deepSleepMode",intent.getBooleanExtra("deepSleepMode",false));
+        Log.d("infoo","the deepsleepmode in alarm service is " + intent.getBooleanExtra("deepSleepMode",false));
 
         startActivity(alarmActivityIntent);
+        Log.d("infoo","the service for the alarm activity started");
 
         // Stop the service
        // stopSelf();

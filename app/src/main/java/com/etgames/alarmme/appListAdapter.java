@@ -1,6 +1,7 @@
 package com.etgames.alarmme;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -121,6 +122,7 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
         LinearLayout senderContainer = dialogView.findViewById(R.id.senderTexts);
         LinearLayout commandContainer = dialogView.findViewById(R.id.comandTexts);
         com.google.android.material.materialswitch.MaterialSwitch isAndSwitch = dialogView.findViewById(R.id.isAnd);
+        com.google.android.material.materialswitch.MaterialSwitch isdeepsleepSwitch = dialogView.findViewById(R.id.isAnd0);
         ArrayList<EditText> senderNameTexts = new ArrayList<>();
         ArrayList<EditText> commmandsTexts = new ArrayList<>();
         Helper command = new Helper(btnAddMore2, btnDeleteLast2);
@@ -142,6 +144,7 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
             }
 
             isAndSwitch.setChecked(pd.isAnd);
+            isdeepsleepSwitch.setChecked(pd.deepSleepMode);
 
             for (String commandMessage :
                     pd.preferedContentCommands) {
@@ -188,6 +191,18 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
                 }
             }
 
+
+            packagDetails.append(MainActivity.ENCODE_SPLIT_MAIN);
+            if(isdeepsleepSwitch.isChecked())
+            {
+                packagDetails.append("on");
+            }
+            else
+            {
+                packagDetails.append("off");
+            }
+
+            Log.d("infoo",packagDetails.toString());
 
             MainActivity.prefs.edit().putString(packageName, packagDetails.toString()).apply();
 

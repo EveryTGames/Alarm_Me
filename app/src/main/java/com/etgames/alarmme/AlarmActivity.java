@@ -11,6 +11,9 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,20 +21,18 @@ import androidx.appcompat.app.AppCompatActivity;
 public class AlarmActivity extends AppCompatActivity {
 
 
-
     private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("infoo", "the activity srtarted");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
 
             setTurnScreenOn(true);
             KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
             keyguardManager.requestDismissKeyguard(this, null);
-        }
-        else
-        {
+        } else {
             Toast.makeText(getApplicationContext(), "the api is below 27", Toast.LENGTH_SHORT).show();
         }
 
@@ -56,13 +57,31 @@ public class AlarmActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        boolean deepSleepMode = getIntent().getBooleanExtra("deepSleepMode",false);
+        Log.d("infoo","the deepsleepmode in alarm activity is " + deepSleepMode);
+        Button stopButton = findViewById(R.id.stopBtn);
+        EditText password = findViewById(R.id.passwordField);
+        TextView passwordText = findViewById(R.id.textView);
+        TextView passwordInstructions = findViewById(R.id.textView9);
 
-        Log.d("infoo","the activity srtarted");
+        if(!deepSleepMode)
+        {
+            passwordInstructions.setText("just press the button to stop");
+            passwordText.setText("");
+            password.setHint("");
+            password.setEnabled(false);
+
         }
 
+        stopButton.setOnClickListener(v -> {
 
-        public void Silence(View e)
-        {
+            Log.d("infoo", "the entered text : " + password.getText().toString().trim());
+            Log.d("infoo", "the required text : " + passwordText.getText().toString().trim());
+            if ( (!password.getText().toString().trim().equals(passwordText.getText().toString().trim())) && deepSleepMode )
+            {
+                password.setError("enter that text exactly, all of it");
+                return;
+            }
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
                 mediaPlayer.release();
@@ -80,7 +99,17 @@ public class AlarmActivity extends AppCompatActivity {
             // Close the app completely
             finishAffinity(); // Close all activities
             System.exit(0);   // Force the app process to stop
-        }
+
+
+
+        });
+
+
+    }
+
+
+
+
     @Override
     protected void onDestroy() {
         super.onDestroy();

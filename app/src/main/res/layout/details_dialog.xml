@@ -145,6 +145,57 @@
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/textView80"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="if you are a deep sleeper, u will be asked to enter a certain text so u be sure that u woke up, and didnt just close it while sleeping " />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:layout_marginTop="16dp"
+            android:layout_weight="1"
+            android:gravity="start|fill|end"
+            android:orientation="horizontal"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/textView30"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="NO"
+                android:textAllCaps="true"
+                android:textDirection="rtl"
+                android:textSize="30sp" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/isAnd0"
+                style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
+                android:layout_width="69dp"
+                android:layout_height="53dp"
+                android:layout_marginEnd="24dp"
+                android:background="#00118C69"
+                android:buttonTint="#26FF00"
+                android:checked="false"
+                android:scaleX="1.5"
+                android:scaleY="1.5"
+                app:thumbTint="@color/black" />
+
+            <TextView
+                android:id="@+id/textView40"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="YES"
+                android:textAlignment="textStart"
+                android:textAllCaps="true"
+                android:textSize="30sp" />
+
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

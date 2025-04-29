@@ -24,13 +24,16 @@ class PackageDetails {
     String[] preferedSenderName;
     boolean isAnd;
     String[] preferedContentCommands;
-    private PackageDetails(){}
+    boolean deepSleepMode;
 
-    public static  PackageDetails retrieve(String PackageName) {
+    private PackageDetails() {
+    }
+
+    public static PackageDetails retrieve(String PackageName) {
 
         //the encoded data is like this
         //                                   "or"  or "and" to determine if the user wants the sender name and one of the content messages to match in order to trigger the alarm, or just want any one of them
-        //value : "<preferered sender name 1>:#encode_split_sub#:<preferered sender name 2 ... 3 and so on>:#encode_split_main#:<"or"  or "and" >:#encode_split_main#:<prefered content message 1>:#encode_split_sub#:<prefered content message 2 ... and so on>"
+        //value : "<preferered sender name 1>:#encode_split_sub#:<preferered sender name 2 ... 3 and so on>:#encode_split_main#:<"or"  or "and" >:#encode_split_main#:<prefered content message 1>:#encode_split_sub#:<prefered content message 2 ... and so on>:#encode_split_main#:<deepSleepMode on or off (default off)>"
 
         String encodedData = MainActivity.prefs.getString(PackageName, null);
 
@@ -45,12 +48,21 @@ class PackageDetails {
             } else {
                 details.preferedContentCommands = new String[]{""};
             }
-        return details;
+            if (decodedDataMain.length == 4) {
+
+                details.deepSleepMode = decodedDataMain[3].equals("on");
+            }
+            else
+            {
+                Log.d("infoo","from old preference");
+                details.deepSleepMode = false;
+            }
+            return details;
         } else {
 
-        Log.e("infoo","be carefule if u encounter an error here");
+            Log.e("infoo", "be carefule if u encounter an error here");
 
-        return null;
+            return null;
         }
 
     }
@@ -88,14 +100,21 @@ public class AppNotificationListenerService extends android.service.notification
         return new NotificationCompat.Builder(context, CHANNEL_ID).setSmallIcon(android.R.drawable.ic_dialog_alert).setContentTitle("Alarm Ringing!").setContentText("Tap to dismiss").setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).build();
     }
 
-    void triggerTheAlarm() {
+    void triggerTheAlarm(boolean deepSleepMode) {
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         final Calendar myCalender = Calendar.getInstance();
         Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra("deepSleepMode", deepSleepMode);
+        Log.d("infoo","deep sleep mode in appnotification listenerSercice is " + deepSleepMode);
         intent.setAction("com.etgames.trigerAlarm");
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-
+        // Use FLAG_UPDATE_CURRENT to ensure the new extras are respected
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID).setSmallIcon(R.drawable.ic_launcher_background).setContentTitle("WAKE UP").setContentText("the command received.").setDefaults(Notification.DEFAULT_SOUND).setAutoCancel(true);
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -154,7 +173,7 @@ public class AppNotificationListenerService extends android.service.notification
             PackageDetails pd;
 
             if (MainActivity.toggledApps.contains(packageName)) {
-                pd =  PackageDetails.retrieve(packageName);
+                pd = PackageDetails.retrieve(packageName);
             } else {
                 return;
             }
@@ -169,7 +188,7 @@ public class AppNotificationListenerService extends android.service.notification
                 for (String _senderName :
                         pd.preferedSenderName) {
                     //change  :-    remember to overwrite the equal for this, so if the _senderName is "" then it be always true
-                    if (isSenderMatch(SenderName,_senderName)) {
+                    if (isSenderMatch(SenderName, _senderName)) {
                         isSender = true;
                         break;
                     }
@@ -187,13 +206,13 @@ public class AppNotificationListenerService extends android.service.notification
 
                 if (pd.isAnd) {
                     if (isSender && isCommand) {
-                        triggerTheAlarm();
+                        triggerTheAlarm(pd.deepSleepMode);
 
                     }
 
                 } else if (isSender || isCommand) {
 
-                    triggerTheAlarm();
+                    triggerTheAlarm(pd.deepSleepMode);
                 }
 
             }
@@ -210,6 +229,8 @@ public class AppNotificationListenerService extends android.service.notification
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("infoo", "on start command called, service started?");
+        Log.d("infoo","the deepsleepmode in on start command for app notification listener is " + intent.getBooleanExtra("deepSleepMode",false));
+
         return super.onStartCommand(intent, flags, startId);
     }
 
