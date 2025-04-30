@@ -37,7 +37,7 @@ If a notification matches both or one of them ( you control that ), the alarm ac
 - **Language**: Java  
 - **Core APIs**: Notification Listener, AlarmManager  
 - **Storage**: SharedPreferences  
-- **UI**: RecyclerView, Dialogs
+- **UI**: ListAdapter, Dialogs
 
 ---
 
