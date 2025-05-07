@@ -2,6 +2,12 @@
 <resources>
 
 
+    <style name="AppTheme.Fullscreen" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
 
     <style name="CustomSwitchStyle" parent="Widget.Material3.CompoundButton.Switch">
         <item name="thumbTint">@color/black</item>

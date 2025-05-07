@@ -42,7 +42,7 @@ class PackageDetails {
             String[] decodedDataMain = encodedData.split(MainActivity.ENCODE_SPLIT_MAIN);
             details.preferedSenderName = decodedDataMain[0].split(MainActivity.ENCODE_SPLIT_SUBs);
             details.isAnd = decodedDataMain[1].equals("and");
-            if (decodedDataMain.length == 3) {
+            if (decodedDataMain.length == 4) {
 
                 details.preferedContentCommands = decodedDataMain[2].split(MainActivity.ENCODE_SPLIT_SUBs);
             } else {
@@ -88,7 +88,7 @@ public class AppNotificationListenerService extends android.service.notification
     private void createNotificationChannel() {
         NotificationChannel channel = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            channel = new NotificationChannel(CHANNEL_ID, "Alarm Notifications", NotificationManager.IMPORTANCE_HIGH);
+            channel = new NotificationChannel(CHANNEL_ID, "Receiving Command Notification", NotificationManager.IMPORTANCE_HIGH);
 
             notificationManager.createNotificationChannel(channel);
         } else {
@@ -124,7 +124,7 @@ public class AppNotificationListenerService extends android.service.notification
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, myCalender.getTimeInMillis(), pendingIntent);
 
 
-        startRepeatingNotifications(this);
+      //  startRepeatingNotifications(this);
 
         Log.d(LOGGER_TAG, "command revcived, alarm triggered");
 

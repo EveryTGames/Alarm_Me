@@ -15,6 +15,9 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.NOTIFICATION_SERVICE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <queries>
         <!-- All apps with launcher icons -->
@@ -45,21 +48,26 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AlarmActivity"/>
+
+        <activity android:name=".AlarmActivity"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="false"
+            android:theme="@style/AppTheme.Fullscreen"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            />
+
         <activity android:name=".toggleAppsActivity" />
 
-        <service
-            android:name=".PersistentService"
-
-            android:enabled="true"
-            android:exported="false">
-        </service>
         <service
             android:name=".AlarmService"
 
             android:enabled="true"
-            android:exported="false">
-        </service>
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+
+            />
+
 
         <receiver android:name=".AlarmReceiver"
             android:exported="false">

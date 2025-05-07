@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHolder> {
 
@@ -137,6 +138,8 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
             command.addOne(context, commmandsTexts, commandContainer, null);
 
         } else {
+            Log.d("infoo", Arrays.toString(pd.preferedContentCommands));
+
             for (String senderName :
                     pd.preferedSenderName) {
                 Sender.addOne(context, senderNameTexts, senderContainer, senderName);

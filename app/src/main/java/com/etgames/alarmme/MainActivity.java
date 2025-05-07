@@ -1,8 +1,12 @@
 package com.etgames.alarmme;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,6 +14,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,7 +36,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -99,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("infoo", " " + isNotificationListenerEnabled(this));
 
+
+
         // NotificationManagerCompat.from(MainActivity.this).requestNotificationChannelPermission("*");
 
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "My Channel", NotificationManager.IMPORTANCE_DEFAULT);
@@ -151,26 +160,118 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Apps loaded", Toast.LENGTH_SHORT).show();
 
         });
+         ActivityResultLauncher<Intent> ringtonePickerLauncher;
+        ringtonePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri ringtoneUri = result.getData().getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+                        if (ringtoneUri != null) {
+                            Log.d("AlarmTone", "Selected ringtone: " + ringtoneUri.toString());
+                            prefs.edit().putString("AlarmTone",ringtoneUri.toString()).apply();
+                            // Save or use the ringtoneUri here
+                        } else {
+                            Log.d("AlarmTone", "User picked 'None' or canceled");
+                        }
+                    }
+                }
+        );
+
+
+        Button SetRingTone = findViewById(R.id.SetRingTone);
+        SetRingTone.setOnClickListener(v ->
+        {
+            Uri currentTone = Uri.parse(prefs.getString("AlarmTone",RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()));
+            Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
+            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM);
+            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Alarm Tone");
+            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false);
+            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, currentTone);
+            ringtonePickerLauncher.launch(intent);
+        });
 
 //   String[] test = ":text:".split(":");
 //    String[] x = test[2].split("#");
 //    boolean ll = "asdafg".contains("");
         //the output is
 //["", "text1", "text2"]
+
+        Button addAlarmButton = findViewById(R.id.customAlarms);
+        addAlarmButton.setOnClickListener(v -> {
+            Calendar now = Calendar.getInstance();
+            TimePickerDialog timePicker = new TimePickerDialog(MainActivity.this, (view, hourOfDay, minute) -> {
+                // alarmList.add(new AlarmItem(hourOfDay, minute));  will be added later
+                //  alarmAdapter.notifyItemInserted(alarmList.size() - 1);  will be added later
+                setAlarm(hourOfDay, minute);
+            }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true);
+
+            timePicker.show();
+        });
+
+
+        // prefs.edit().putString("Alarms",) will be continued later
     }
 
     interface AppLoadCallback {
         void onLoaded();
     }
 
-    Handler handler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    void triggerTheAlarm(boolean deepSleepMode, int hour, int minute) {
+
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        if (calendar.before(Calendar.getInstance())) {
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra("deepSleepMode", deepSleepMode);
+        Log.d("infoo", "deep sleep mode in appnotification listenerSercice is " + deepSleepMode);
+        intent.setAction("com.etgames.trigerAlarm");
+        // Use FLAG_UPDATE_CURRENT to ensure the new extras are respected
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID).setSmallIcon(R.drawable.ic_launcher_background).setContentTitle("ALARM Set").setContentText("the Alarm set on " + hour + ":" + minute).setDefaults(Notification.DEFAULT_SOUND).setAutoCancel(true);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.notify(652, builder.build());
+
+
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+
+
+        Log.d("infoo", "command revcived, alarm triggered");
+
+
+    }
+
+    private static final String LOGGER_TAG = "infoo";
+
+
+    private void setAlarm(int hour, int minute) {
+
+        triggerTheAlarm(true, hour, minute);
+
+
+    }
+
     private void loadInstalledAppsAsync(AppLoadCallback callback) {
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Toast.makeText(getApplicationContext(), "loading Apps...", Toast.LENGTH_SHORT).show();
 
         executor.execute(() -> {
-              loadInstalledApps();
+            loadInstalledApps();
 
             handler.post(callback::onLoaded);
         });
