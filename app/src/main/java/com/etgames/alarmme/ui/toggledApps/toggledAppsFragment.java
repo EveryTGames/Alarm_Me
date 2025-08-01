@@ -1,25 +1,23 @@
-package com.etgames.alarmme;
+package com.etgames.alarmme.ui.toggledApps;
 
 import static com.etgames.alarmme.MainActivity.loadedApps;
-import static com.etgames.alarmme.MainActivity.toggledApps;
 
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,34 +26,67 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
-public class toggleAppsActivity extends AppCompatActivity {
+import com.etgames.alarmme.FabViewModel;
+import com.etgames.alarmme.MainActivity;
+import com.etgames.alarmme.R;
+import com.etgames.alarmme.appListAdapter;
+import com.etgames.alarmme.app_info;
+import com.etgames.alarmme.databinding.FragmentToggledappsBinding;
+import com.etgames.alarmme.ui.rules.RulesViewModel;
 
+
+public class toggledAppsFragment extends Fragment {
     Runnable searchRunnable;
     Handler handler = new Handler(Looper.getMainLooper());
     int delay = 1000;
     appListAdapter adapter;
+    RulesViewModel rulesViewModel;
 
-    @RequiresApi(api = Build.VERSION_CODES.S)
+    FragmentToggledappsBinding binding;
+    FabViewModel fabViewModel;
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.toggle_apps_layout);
-
-        Log.d("infoo", "the new activity started");
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = FragmentToggledappsBinding.inflate(inflater, container, false);
 
 
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new appListAdapter(this);
 
+        fabViewModel = new ViewModelProvider(requireActivity()).get(FabViewModel.class);
+        rulesViewModel = new ViewModelProvider(requireActivity()).get(RulesViewModel.class);
+
+
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+
+        // Example: make FAB visible
+        fabViewModel.setShowFab(false);
+        fabViewModel.setShowQuiteFab(false);
+
+
+        MainActivity.toggledAppsForCurrentRule=MainActivity.getToggledAppsForRule(MainActivity.currentID);
+
+        RecyclerView recyclerView = binding.recyclerView;
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new appListAdapter(requireContext());
+
+        adapter.setToggleState(MainActivity.toggledAppsForCurrentRule);
         adapter.submitList(loadedApps);
 
 
         recyclerView.setAdapter(adapter);
 
 
-        EditText searchEditText = findViewById(R.id.searchEditText);
+        EditText searchEditText = binding.searchEditText;
         searchEditText.addTextChangedListener(
                 new TextWatcher() {
                     @Override
@@ -85,16 +116,21 @@ public class toggleAppsActivity extends AppCompatActivity {
                     }
                 }
         );
-        ImageButton deleteSearchBtn = findViewById(R.id.delBtn);
+        ImageButton deleteSearchBtn = binding.delBtn;
         deleteSearchBtn.setOnClickListener(v ->
                 searchEditText.setText("")
         );
 
+        Button btnConfirm = binding.btnToggledAppsConfirm;
+        btnConfirm.setOnClickListener(view1 -> {
+            rulesViewModel.dialogg.show();
+            NavController navController = NavHostFragment.findNavController(this);
+            navController.navigate(R.id.action_nav_toggledapps_to_nav_rules);
 
+        });
     }
 
     ExecutorService background = Executors.newSingleThreadExecutor();
-
 
     void filter(@NonNull String searchQuery) {
         background.execute(
@@ -107,7 +143,7 @@ public class toggleAppsActivity extends AppCompatActivity {
                     if (!searchQuery.isEmpty()) {
                         filteredList = new ArrayList<>();
                         for (app_info item : loadedApps) {
-                            if (item.appName.toLowerCase().contains(searchQuery.toLowerCase()))
+                            if (item.getItemTitle().toLowerCase().contains(searchQuery.toLowerCase()))
                                 filteredList.add(item);
                         }
                     } else {
@@ -127,6 +163,4 @@ public class toggleAppsActivity extends AppCompatActivity {
 
     }
 
-
 }
-

@@ -3,9 +3,11 @@ package com.etgames.alarmme;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
@@ -41,11 +43,22 @@ public class AlarmService extends Service {
             }
         }
 
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE
+        );
+
         return new NotificationCompat.Builder(this, channelId)
                 .setContentTitle("🚨 Alarm Ringing")
-                .setContentText("you have to stop the alarm from the app")
-                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setContentText("Tap to stop the alarm in the app")
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent) // this makes it clickable
                 .setOngoing(true)
                 .build();
     }
@@ -53,11 +66,13 @@ public class AlarmService extends Service {
     private MediaPlayer mediaPlayer;
     private Handler handler;
     private Runnable launchStopScreenRunnable;
+    public static SharedPreferences prefs;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(1, createNotification());
 
+        prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
         checkVolume();
         startAlarm();
         StartAlarmActivity(intent);
@@ -122,7 +137,7 @@ public class AlarmService extends Service {
 
         try {
 
-            Uri currentTone = Uri.parse(MainActivity.prefs.getString("AlarmTone", RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()));
+            Uri currentTone = Uri.parse(prefs.getString("AlarmTone", RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()));
 
             // Set the audio stream to ALARM
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
@@ -134,6 +149,7 @@ public class AlarmService extends Service {
             mediaPlayer.prepare();       // Prepare the MediaPlayer
             mediaPlayer.start();         // Start playing
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }
@@ -155,6 +171,8 @@ public class AlarmService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+
+
         return null;
     }
 

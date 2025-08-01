@@ -9,7 +9,9 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
@@ -57,7 +59,7 @@
             android:excludeFromRecents="true"
             />
 
-        <activity android:name=".toggleAppsActivity" />
+
 
         <service
             android:name=".AlarmService"
@@ -76,11 +78,17 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:enabled="true" android:exported="true" android:name=".BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
         <service
             android:name=".AppNotificationListenerService"
             android:enabled="true"
-
+            android:foregroundServiceType="specialUse"
             android:exported="true"
+
 
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
 

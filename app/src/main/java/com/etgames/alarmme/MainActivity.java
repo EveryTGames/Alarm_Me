@@ -6,7 +6,6 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.TimePickerDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,7 +13,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,8 +20,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -35,8 +33,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 
-import java.net.URI;
+import com.etgames.alarmme.databinding.ActivityMainBinding;
+import com.google.android.material.navigation.NavigationView;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -56,23 +62,43 @@ public class MainActivity extends AppCompatActivity {
     private static final int JOB_ID = 1;
     public static final String CHANNEL_ID = "myAlarm";
 
+    private ActivityMainBinding binding;
+    public static boolean isLoaded = false;
 
     public static Set<String> toggledApps;
+
+    public static Set<String> toggledAppsForCurrentRule;
     public static SharedPreferences prefs;
+
 
     public static void saveSet() {
         prefs.edit().putStringSet("toggled_apps", toggledApps).apply();
     }
 
-    public static List<app_info> loadedApps;
-    boolean isLoaded = false;
+    public static void saveToggledAppsForRule(String ruleId, Set<String> toggledApps) {
+        prefs.edit().putStringSet("toggled_apps_" + ruleId, new HashSet<>(toggledApps)).apply();
+    }
 
+    public static Set<String> getToggledAppsForRule(String ruleId) {
+        return new HashSet<>(prefs.getStringSet("toggled_apps_" + ruleId, new HashSet<>()));
+    }
+
+    public static String currentID;
+
+    public static List<app_info> loadedApps;
+    private AppBarConfiguration mAppBarConfiguration;
+    public static int lastID;
+
+
+    FabViewModel fabViewModel;
 
     @RequiresApi(api = Build.VERSION_CODES.S)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+
+        setContentView(binding.getRoot());
 
 
         int permissionState = ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS);
@@ -82,12 +108,41 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-//        //ask for permission for exac alarm
-//        Intent intent = new Intent(ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
-//        startActivityForResult(intent, REQUEST_CODE);
+
+
+        setSupportActionBar(binding.appBarMain.toolbar);
+
+
+        DrawerLayout drawer = binding.drawerLayout;
+        NavigationView navigationView = binding.navView;
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        mAppBarConfiguration = new AppBarConfiguration.Builder(
+                 R.id.nav_alarms, R.id.nav_rules, R.id.nav_settings)
+                .setOpenableLayout(drawer)
+                .build();
+
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment_content_main);
+        NavController navController = navHostFragment.getNavController();
+
+        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(navigationView, navController);
 
 
         prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
+        new Thread(() -> {
+            AlarmDataBase db = AlarmDataBase.getDatabase(MainActivity.this);
+            List<Long> enabledAlarms = db.alarmDao().getAllEnabledAlarmIds();
+            Set<String> idSet = new HashSet<>();
+            for (Long id : enabledAlarms) {
+                idSet.add(String.valueOf(id));
+            }
+            prefs.edit().putStringSet("toggledAlarms", new HashSet<>(idSet) ).apply();
+        }).start();
+
+        Log.d("infoo",prefs.getString("succesfullyRegisteredAlarmsAfterBoot","not there :)"));
+
         toggledApps = prefs.getStringSet("toggled_apps", new HashSet<>());
         // i copied it again bc the returned one was a live set
         //which means any change in it will be changed in the prefs, which will make weird behaviours
@@ -96,129 +151,88 @@ public class MainActivity extends AppCompatActivity {
         Log.d("infoo", "toggled apps set is " + toggledApps.size() + " item");
 
 
-        //alarm
-        //
-        //
-        //
-        //
-        // pending intent
+
 
 
         Log.d("infoo", " " + isNotificationListenerEnabled(this));
 
 
 
-        // NotificationManagerCompat.from(MainActivity.this).requestNotificationChannelPermission("*");
-
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "My Channel", NotificationManager.IMPORTANCE_DEFAULT);
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.createNotificationChannel(channel);
 
 
-//        timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
-//            @SuppressLint("ScheduleExactAlarm")
-//            @Override
-//            public void onTimeSet(TimePicker view, int hourOfDay,
-//                                  int minute) {
-//                // Handle the selected
-//
-//                long alarmTime = System.currentTimeMillis() + (long) Calendar.MINUTE * minute + (long) Calendar.HOUR_OF_DAY * hourOfDay;
-//                Log.d("infoo","alarmTime" +  alarmTime);
-//                // ... set the alarm using alarmTime
-//
-//                // ... set the button's click listener to show the time picker dialog
-////                JobScheduler jobScheduler = getSystemService(JobScheduler.class);
-////                JobInfo jobInfo = new JobInfo.Builder(JOB_ID, new ComponentName(MainActivity.this, AlarmService.class))
-////                        .setPeriodic(6000)
-////                        .build();
-////                //jobScheduler.schedule(jobInfo);
-////                int resultCode = jobScheduler.schedule(jobInfo);
-////                if (resultCode == JobScheduler.RESULT_SUCCESS) {
-////                    Log.d("infoo", "Job scheduled successfully");
-////                } else {
-////                    Log.e("infoo", "Failed to schedule job: " + resultCode);
-////                }
-////                Toast.makeText(MainActivity.this,"service started", Toast.LENGTH_SHORT).show();
-////                Log.d("infoo","it started");
-//
-//            }
-//        }, Calendar.getInstance().get(Calendar.HOUR_OF_DAY), Calendar.getInstance().get(Calendar.MINUTE), false);
+        lastID = Integer.parseInt(prefs.getString("lastID", "0"));
 
 
-        Button btnOpenAppList = findViewById(R.id.BtnPref);
-        btnOpenAppList.setEnabled(false);
-        btnOpenAppList.setOnClickListener(v -> {
 
-            Intent intent = new Intent(MainActivity.this, toggleAppsActivity.class);
-            startActivity(intent);
+        fabViewModel = new ViewModelProvider(this).get(FabViewModel.class);
 
+
+
+        fabViewModel.quiteFabClicked.observe(this, unused -> {
+
+
+            StopService();
+           // Toast.makeText(this, "FAB clicked! in main activity", Toast.LENGTH_SHORT).show();
         });
 
-        loadInstalledAppsAsync(() -> {
-            isLoaded = true;
-            btnOpenAppList.setEnabled(true);
-            Toast.makeText(getApplicationContext(), "Apps loaded", Toast.LENGTH_SHORT).show();
-
+        fabViewModel.getShowFab().observe(this, visible -> {
+            if (visible != null) {
+                binding.appBarMain.fab.setVisibility(visible ? View.VISIBLE : View.GONE);
+            }
         });
-         ActivityResultLauncher<Intent> ringtonePickerLauncher;
-        ringtonePickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        Uri ringtoneUri = result.getData().getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
-                        if (ringtoneUri != null) {
-                            Log.d("AlarmTone", "Selected ringtone: " + ringtoneUri.toString());
-                            prefs.edit().putString("AlarmTone",ringtoneUri.toString()).apply();
-                            // Save or use the ringtoneUri here
-                        } else {
-                            Log.d("AlarmTone", "User picked 'None' or canceled");
-                        }
-                    }
-                }
-        );
-
-
-        Button SetRingTone = findViewById(R.id.SetRingTone);
-        SetRingTone.setOnClickListener(v ->
-        {
-            Uri currentTone = Uri.parse(prefs.getString("AlarmTone",RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()));
-            Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM);
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Alarm Tone");
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false);
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, currentTone);
-            ringtonePickerLauncher.launch(intent);
+        fabViewModel.getShowQuiteFab().observe(this, visible -> {
+            if (visible != null) {
+                binding.appBarMain.quiteFab.setVisibility(visible ? View.VISIBLE : View.GONE);
+            }
         });
 
-//   String[] test = ":text:".split(":");
-//    String[] x = test[2].split("#");
-//    boolean ll = "asdafg".contains("");
-        //the output is
-//["", "text1", "text2"]
-
-        Button addAlarmButton = findViewById(R.id.customAlarms);
-        addAlarmButton.setOnClickListener(v -> {
-            Calendar now = Calendar.getInstance();
-            TimePickerDialog timePicker = new TimePickerDialog(MainActivity.this, (view, hourOfDay, minute) -> {
-                // alarmList.add(new AlarmItem(hourOfDay, minute));  will be added later
-                //  alarmAdapter.notifyItemInserted(alarmList.size() - 1);  will be added later
-                setAlarm(hourOfDay, minute);
-            }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true);
-
-            timePicker.show();
+        // FAB click listener (optional - can trigger ViewModel method if Fragment uses FAB)
+        binding.appBarMain.fab.setOnClickListener(view -> {
+            fabViewModel.triggerFabClick();
+        });
+        binding.appBarMain.quiteFab.setOnClickListener(view -> {
+            fabViewModel.triggerQuiteFabClick();
         });
 
 
-        // prefs.edit().putString("Alarms",) will be continued later
+        if (!isLoaded) {
+
+            loadInstalledAppsAsync(() -> {
+                isLoaded = true;
+                Toast.makeText(this, "App list loaded", Toast.LENGTH_SHORT).show();
+
+            });
+        }
+
     }
 
-    interface AppLoadCallback {
+    public interface AppLoadCallback {
         void onLoaded();
+    }
+
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment_content_main);
+        NavController navController = navHostFragment.getNavController();
+        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
+                || super.onSupportNavigateUp();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
     }
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    void triggerTheAlarm(boolean deepSleepMode, int hour, int minute) {
+    public void triggerTheAlarm(boolean deepSleepMode, int hour, int minute) {
 
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -258,17 +272,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String LOGGER_TAG = "infoo";
 
 
-    private void setAlarm(int hour, int minute) {
-
-        triggerTheAlarm(true, hour, minute);
-
-
-    }
-
-    private void loadInstalledAppsAsync(AppLoadCallback callback) {
+    public void loadInstalledAppsAsync(AppLoadCallback callback) {
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Toast.makeText(getApplicationContext(), "loading Apps...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "loading App List...", Toast.LENGTH_SHORT).show();
 
         executor.execute(() -> {
             loadInstalledApps();
@@ -277,7 +284,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
     private void loadInstalledApps() {
+
 
         PackageManager packageManager = getPackageManager();
         List<ResolveInfo> installedApps = packageManager.queryIntentActivities(
@@ -297,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //Helper method to show a dialog window
+    //Helperr method to show a dialog window
     private void showMessageForFloatingPermission(String message) {
         new android.app.AlertDialog.Builder(MainActivity.this).setMessage(message).setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
@@ -318,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //Helper method for checking over lay floating permission
+    //Helperr method for checking over lay floating permission
     public void checkFloatingPermission() {
         if (!Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
@@ -395,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void StopService(View v) {
+    public void StopService() {
         // Remove the permanent notification
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
@@ -416,17 +425,6 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean stop() {
 
-//        packageManager = getPackageManager();
-//        componentName =  new ComponentName(this, AppNotificationListenerService.class);
-//        // Disable the component:
-//        packageManager.setComponentEnabledSetting(componentName,
-//                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-//                PackageManager.DONT_KILL_APP);
-
-//        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "My Channel", NotificationManager.IMPORTANCE_DEFAULT);
-//        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//        manager.createNotificationChannel(channel);
-//        NotificationChannel chaanneeel =   manager.getNotificationChannel(CHANNEL_ID);
 
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID).setSmallIcon(R.drawable.ic_launcher_background).setContentTitle("the app is closed").setContentText("the service stopped, will no longer be able to listen to messages").setPriority(NotificationCompat.PRIORITY_DEFAULT).setOngoing(false);
@@ -465,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("infoo", "destroy have been called from main activity, service stopped?");
 
 
-        Log.d("infoo", "the sstop function returned with  " + stop());
+        // Log.d("infoo", "the sstop function returned with  " + stop());
 
         Log.d("infoo", "hmmmmmmmm");
 

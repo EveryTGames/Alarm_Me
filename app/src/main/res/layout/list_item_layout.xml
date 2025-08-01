@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/list_item"
     android:layout_width="match_parent"
-    android:layout_height="90dp">
+    android:layout_height="100dp">
 
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/switch1"
@@ -22,14 +23,27 @@
         app:thumbTint="@color/black" />
 
     <TextView
-        android:id="@+id/appName"
-        android:layout_width="239dp"
-        android:layout_height="50dp"
+        android:id="@+id/listItemTitle"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
         android:layout_marginStart="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginEnd="5dp"
+        app:layout_constraintEnd_toStartOf="@+id/switch1"
         app:layout_constraintStart_toEndOf="@+id/appIcon"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.527" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/listItemDetails"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="5dp"
+        android:ellipsize="none"
+        android:singleLine="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/switch1"
+        app:layout_constraintStart_toEndOf="@+id/appIcon"
+        app:layout_constraintTop_toBottomOf="@+id/listItemTitle" />
 
     <ImageView
         android:id="@+id/appIcon"

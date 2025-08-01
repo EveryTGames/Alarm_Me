@@ -5,8 +5,11 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,58 +21,12 @@ import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
 
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
-
-class PackageDetails {
-    String[] preferedSenderName;
-    boolean isAnd;
-    String[] preferedContentCommands;
-    boolean deepSleepMode;
-
-    private PackageDetails() {
-    }
-
-    public static PackageDetails retrieve(String PackageName) {
-
-        //the encoded data is like this
-        //                                   "or"  or "and" to determine if the user wants the sender name and one of the content messages to match in order to trigger the alarm, or just want any one of them
-        //value : "<preferered sender name 1>:#encode_split_sub#:<preferered sender name 2 ... 3 and so on>:#encode_split_main#:<"or"  or "and" >:#encode_split_main#:<prefered content message 1>:#encode_split_sub#:<prefered content message 2 ... and so on>:#encode_split_main#:<deepSleepMode on or off (default off)>"
-
-        String encodedData = MainActivity.prefs.getString(PackageName, null);
-
-        if (encodedData != null) {
-            PackageDetails details = new PackageDetails();
-            String[] decodedDataMain = encodedData.split(MainActivity.ENCODE_SPLIT_MAIN);
-            details.preferedSenderName = decodedDataMain[0].split(MainActivity.ENCODE_SPLIT_SUBs);
-            details.isAnd = decodedDataMain[1].equals("and");
-            if (decodedDataMain.length == 4) {
-
-                details.preferedContentCommands = decodedDataMain[2].split(MainActivity.ENCODE_SPLIT_SUBs);
-            } else {
-                details.preferedContentCommands = new String[]{""};
-            }
-            if (decodedDataMain.length == 4) {
-
-                details.deepSleepMode = decodedDataMain[3].equals("on");
-            }
-            else
-            {
-                Log.d("infoo","from old preference");
-                details.deepSleepMode = false;
-            }
-            return details;
-        } else {
-
-            Log.e("infoo", "be carefule if u encounter an error here");
-
-            return null;
-        }
-
-    }
-
-}
 
 public class AppNotificationListenerService extends android.service.notification.NotificationListenerService {
+
 
     private static final String LOGGER_TAG = "infoo";
 
@@ -79,6 +36,36 @@ public class AppNotificationListenerService extends android.service.notification
     private NotificationManager notificationManager;
     private final Handler handler = new Handler();
     private boolean alarmActive = false;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        NotificationChannel channel = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            channel = new NotificationChannel(
+                    "MyServiceChannel",
+                    "Service Notifications",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            channel.setDescription("Channel for foreground service");
+        }
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(channel);
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "MyServiceChannel")
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("Notification Listener Active")
+                .setContentText("Listening for alarm commands...")
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setOngoing(true);
+
+        startForeground(55, builder.build());
+    }
+
 
     public void AlarmNotifier(Context context) {
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -106,7 +93,7 @@ public class AppNotificationListenerService extends android.service.notification
         final Calendar myCalender = Calendar.getInstance();
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.putExtra("deepSleepMode", deepSleepMode);
-        Log.d("infoo","deep sleep mode in appnotification listenerSercice is " + deepSleepMode);
+        Log.d("infoo", "deep sleep mode in appnotification listenerSercice is " + deepSleepMode);
         intent.setAction("com.etgames.trigerAlarm");
         // Use FLAG_UPDATE_CURRENT to ensure the new extras are respected
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
@@ -124,7 +111,7 @@ public class AppNotificationListenerService extends android.service.notification
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, myCalender.getTimeInMillis(), pendingIntent);
 
 
-      //  startRepeatingNotifications(this);
+        //  startRepeatingNotifications(this);
 
         Log.d(LOGGER_TAG, "command revcived, alarm triggered");
 
@@ -159,6 +146,24 @@ public class AppNotificationListenerService extends android.service.notification
         return senderName.equals(targetName);
     }
 
+    public static void restartNotificationListener(Context context) {
+        ComponentName componentName = new ComponentName(context, AppNotificationListenerService.class);
+
+        PackageManager pm = context.getPackageManager();
+        pm.setComponentEnabledSetting(
+                componentName,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+        );
+
+        pm.setComponentEnabledSetting(
+                componentName,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
+        );
+    }
+
+
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         // Handle notification events here
@@ -170,52 +175,71 @@ public class AppNotificationListenerService extends android.service.notification
             String message = extras.getString("android.text");
             String SenderName = extras.getString("android.title");
             String packageName = sbn.getPackageName();
-            PackageDetails pd;
+            PackageDetailss pd = new PackageDetailss(this);
+           Set<String> toggledApps = PackageDetailss.prefs.getStringSet("toggled_apps", new HashSet<>());
+            if (toggledApps.contains(packageName)) {
+                String[] ids = PackageDetailss.getRulesIDs(packageName);
+                if(ids==null)
+                {
+                    Log.e("infoo","wait what? in notificationlistener, something is really wrong, the package name is in the toggled list, but doesnt have any IDs");
+                    return;
+                }
+                for (String id :
+                        ids) {
+                    Set<String> toggledRulesSet = PackageDetailss.prefs.getStringSet("toggledRules",new HashSet<>());
 
-            if (MainActivity.toggledApps.contains(packageName)) {
-                pd = PackageDetails.retrieve(packageName);
+                    if(!toggledRulesSet.contains(id))
+                    {
+                        continue;
+                    }
+                    pd = pd.retrieve(id);
+
+
+                    if (message != null && SenderName != null) {
+
+                        boolean isSender = false;
+                        boolean isCommand = false;
+
+
+                        //here we now sure that it is one of our apps
+                        for (String _senderName :
+                                pd.preferedSenderName) {
+                            //change  :-    remember to overwrite the equal for this, so if the _senderName is "" then it be always true
+                            if (isSenderMatch(SenderName, _senderName)) {
+                                isSender = true;
+                                break;
+                            }
+
+                        }
+                        for (String command :
+                                pd.preferedContentCommands) {
+
+                            if (message.contains(command)) {
+                                isCommand = true;
+                                break;
+                            }
+
+                        }
+
+                        if (pd.isAnd) {
+                            if (isSender && isCommand) {
+                                triggerTheAlarm(pd.deepSleepMode);
+                                break;
+
+                            }
+
+                        } else if (isSender || isCommand) {
+
+                            triggerTheAlarm(pd.deepSleepMode);
+                            break;
+                        }
+
+                    }
+                }
             } else {
                 return;
             }
 
-            if (message != null && SenderName != null) {
-
-                boolean isSender = false;
-                boolean isCommand = false;
-
-
-                //here we now sure that it is one of our apps
-                for (String _senderName :
-                        pd.preferedSenderName) {
-                    //change  :-    remember to overwrite the equal for this, so if the _senderName is "" then it be always true
-                    if (isSenderMatch(SenderName, _senderName)) {
-                        isSender = true;
-                        break;
-                    }
-
-                }
-                for (String command :
-                        pd.preferedContentCommands) {
-
-                    if (message.contains(command)) {
-                        isCommand = true;
-                        break;
-                    }
-
-                }
-
-                if (pd.isAnd) {
-                    if (isSender && isCommand) {
-                        triggerTheAlarm(pd.deepSleepMode);
-
-                    }
-
-                } else if (isSender || isCommand) {
-
-                    triggerTheAlarm(pd.deepSleepMode);
-                }
-
-            }
         }
     }
 
@@ -229,7 +253,7 @@ public class AppNotificationListenerService extends android.service.notification
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("infoo", "on start command called, service started?");
-        Log.d("infoo","the deepsleepmode in on start command for app notification listener is " + intent.getBooleanExtra("deepSleepMode",false));
+        Log.d("infoo", "the deepsleepmode in on start command for app notification listener is " + intent.getBooleanExtra("deepSleepMode", false));
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -251,13 +275,6 @@ public class AppNotificationListenerService extends android.service.notification
         AlarmNotifier(this);
 
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID).setSmallIcon(R.drawable.ic_launcher_background).setContentTitle("the app is Running").setContentText("the service started and listening for notifications,plz dont close the app").setPriority(NotificationCompat.PRIORITY_DEFAULT).setOngoing(true);
-
-        // Show the notification
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        notificationManager.notify(55, builder.build());
-
         return super.onBind(intent);
     }
 
@@ -271,7 +288,7 @@ public class AppNotificationListenerService extends android.service.notification
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         Log.d("infoo", "taskRemoved have been called, service stopped?");
-
+        restartNotificationListener(getApplicationContext());
         super.onTaskRemoved(rootIntent);
     }
 
