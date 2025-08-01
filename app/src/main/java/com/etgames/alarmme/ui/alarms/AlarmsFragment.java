@@ -73,7 +73,7 @@ public class AlarmsFragment extends Fragment {
                 throw new RuntimeException(e);
             }
 
-            Toast.makeText(requireContext(), "FAB clicked! in alarms", Toast.LENGTH_SHORT).show();
+           // Toast.makeText(requireContext(), "FAB clicked! in alarms", Toast.LENGTH_SHORT).show();
         });
 
 

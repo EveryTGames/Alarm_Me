@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/list_item"
     android:layout_width="match_parent"
-    android:layout_height="100dp">
+    android:layout_height="100dp"
+    android:theme="@style/Base.Theme.ALARMAPP">
 
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/switch1"
@@ -14,6 +15,7 @@
         android:layout_marginEnd="24dp"
         android:scaleX="1.5"
         android:scaleY="1.5"
+        android:theme="@style/Base.Theme.ALARMAPP"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -28,6 +30,7 @@
         android:layout_height="30dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="5dp"
+        android:theme="@style/Base.Theme.ALARMAPP"
         app:layout_constraintEnd_toStartOf="@+id/switch1"
         app:layout_constraintStart_toEndOf="@+id/appIcon"
         app:layout_constraintTop_toTopOf="parent" />
@@ -40,6 +43,7 @@
         android:layout_marginEnd="5dp"
         android:ellipsize="none"
         android:singleLine="false"
+        android:theme="@style/Base.Theme.ALARMAPP"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/switch1"
         app:layout_constraintStart_toEndOf="@+id/appIcon"
@@ -50,6 +54,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
+        android:theme="@style/Base.Theme.ALARMAPP"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

@@ -1,36 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/edit_alarm_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="24dp"
+    android:background="@color/black"
     android:orientation="vertical"
-    android:background="@android:color/white">
+    android:padding="24dp">
 
     <TextView
         android:id="@+id/dialogTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="Edit Alarm"
-        android:textSize="20sp"
-        android:textStyle="bold"
         android:textColor="@android:color/black"
-        android:layout_marginBottom="16dp" />
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <TimePicker
         android:id="@+id/timePicker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:timePickerMode="spinner"
         android:layout_marginBottom="16dp"
-        />
+        android:timePickerMode="spinner" />
 
     <EditText
         android:id="@+id/editDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:background="@android:drawable/edit_text"
+        android:background="@android:drawable/editbox_dropdown_dark_frame"
         android:hint="Description"
         android:inputType="textPersonName"
         android:padding="8dp" />
@@ -39,70 +40,123 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="24dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:theme="@style/Base.Theme.ALARMAPP">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:text="Deep Sleep"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:theme="@style/Base.Theme.ALARMAPP" />
 
         <Switch
             android:id="@+id/switchDeepSleep"
             android:layout_width="65dp"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:theme="@style/Base.Theme.ALARMAPP" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="372dp"
         android:layout_height="45dp"
         android:layout_marginBottom="24dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:theme="@style/Base.Theme.ALARMAPP">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:text="Repeating"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:theme="@style/Base.Theme.ALARMAPP" />
 
         <Switch
             android:id="@+id/switchRepeating"
             android:layout_width="65dp"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:theme="@style/Base.Theme.ALARMAPP" />
     </LinearLayout>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="end">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDelete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:paddingRight="16dp"
             android:singleLine="true"
             android:text="Delete"
-            android:textAlignment="center"
-            android:textIsSelectable="false"
+            android:padding="3dp"
+            android:paddingStart="3dp"
+            android:paddingLeft="3dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="3dp"
+            android:paddingRight="3dp"
+            android:paddingBottom="3dp"
+            app:iconPadding="3dp"
+            app:iconSize="1dp"
             android:textSize="14sp"
-            android:translationX="0dp" />
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+
             android:id="@+id/btnCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cancel" />
+            android:padding="3dp"
+            android:paddingStart="3dp"
+            android:paddingLeft="3dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="3dp"
+            android:paddingRight="3dp"
+            android:paddingBottom="3dp"
+            app:iconPadding="3dp"
+            app:iconSize="1dp"
+            android:textSize="14sp"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            android:text="Cancel"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
+
             android:id="@+id/btnSave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Save"
-            android:layout_marginStart="16dp" />
-    </LinearLayout>
+            android:padding="3dp"
+            android:paddingStart="3dp"
+            android:paddingLeft="3dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="3dp"
+            android:paddingRight="3dp"
+            android:paddingBottom="3dp"
+            app:iconPadding="3dp"
+            app:iconSize="1dp"
+            android:textSize="14sp"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

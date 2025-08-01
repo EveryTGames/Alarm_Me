@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.ALARMAPP" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.ALARMAPP" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -13,11 +13,17 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
         <item name="materialSwitchStyle">@style/CustomSwitchStyle</item>
+
+        <item name="buttonStyle">@style/MyRoundedButton</item>
     </style>
     <!-- Base application theme. -->
     <style name="Base.Theme.ALARMAPP" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
         <item name="materialSwitchStyle">@style/CustomSwitchStyle</item>
+    </style>
+    <style name="MyRoundedButton" parent="Widget.Material3.Button">
+        <item name="cornerRadius">16dp</item>
+
     </style>
 </resources>

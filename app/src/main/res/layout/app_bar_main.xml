@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:theme="@style/Base.Theme.ALARMAPP">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout2"
@@ -19,6 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/purple_700"
+            android:theme="@style/Base.Theme.ALARMAPP"
             app:popupTheme="@style/Base.Theme.ALARMAPP" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -28,6 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="60dp"
+        android:theme="@style/Base.Theme.ALARMAPP"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -38,6 +41,7 @@
             android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:theme="@style/Base.Theme.ALARMAPP"
             app:defaultNavHost="true"
             app:layout_constraintHorizontal_bias="0.6"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -51,6 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="136dp"
             android:layout_gravity="bottom|end"
+            android:theme="@style/Base.Theme.ALARMAPP"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.929"
@@ -65,6 +70,7 @@
             android:layout_height="136dp"
             android:layout_gravity="bottom|end"
             android:background="#FF0000"
+            android:theme="@style/Base.Theme.ALARMAPP"
             app:backgroundTint="#FF0000"
             app:backgroundTintMode="screen"
             app:layout_constraintBottom_toBottomOf="parent"

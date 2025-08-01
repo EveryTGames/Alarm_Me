@@ -2,21 +2,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:textAlignment="textEnd">
+    android:textAlignment="textEnd"
+    android:theme="@style/Base.Theme.ALARMAPP">
 
     <LinearLayout
         android:id="@+id/layoutContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:theme="@style/Base.Theme.ALARMAPP">
 
 
         <TextView
             android:id="@+id/textView7"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sender's Names list (one of them matches)" />
+            android:text="Sender's Names list (one of them matches)"
+            android:theme="@style/Base.Theme.ALARMAPP" />
 
         <LinearLayout
             android:id="@+id/senderTexts"
@@ -26,7 +29,8 @@
             android:layout_marginTop="16dp"
             android:gravity="start|fill|end"
             android:orientation="vertical"
-            android:visibility="visible"/>
+            android:theme="@style/Base.Theme.ALARMAPP"
+            android:visibility="visible" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -35,13 +39,15 @@
             android:layout_marginTop="16dp"
             android:gravity="start|fill|end"
             android:orientation="horizontal"
+            android:theme="@style/Base.Theme.ALARMAPP"
             android:visibility="visible">
 
             <Button
                 android:id="@+id/btnAddMore"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add More" />
+                android:text="Add More"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
             <Button
                 android:id="@+id/btnDeleteLast"
@@ -49,7 +55,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="10dp"
-                android:text="Delete Last" />
+                android:text="Delete Last"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
         </LinearLayout>
 
@@ -58,7 +65,8 @@
             android:id="@+id/textView8"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="should one of the senders AND one of the commands match? or one of them is enough?" />
+            android:text="should one of the senders AND one of the commands match? or one of them is enough?"
+            android:theme="@style/Base.Theme.ALARMAPP" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -67,6 +75,7 @@
             android:layout_marginTop="16dp"
             android:gravity="start|fill|end"
             android:orientation="horizontal"
+            android:theme="@style/Base.Theme.ALARMAPP"
             android:visibility="visible">
 
             <TextView
@@ -77,7 +86,8 @@
                 android:text="OR"
                 android:textAllCaps="true"
                 android:textDirection="rtl"
-                android:textSize="30sp" />
+                android:textSize="30sp"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/isAnd"
@@ -90,6 +100,7 @@
                 android:checked="true"
                 android:scaleX="1.5"
                 android:scaleY="1.5"
+                android:theme="@style/Base.Theme.ALARMAPP"
                 app:thumbTint="@color/black" />
 
             <TextView
@@ -100,7 +111,8 @@
                 android:text="AND"
                 android:textAlignment="textStart"
                 android:textAllCaps="true"
-                android:textSize="30sp" />
+                android:textSize="30sp"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
         </LinearLayout>
 
@@ -108,7 +120,8 @@
             android:id="@+id/textView6"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="commands list (one of them matches)" />
+            android:text="commands list (one of them matches)"
+            android:theme="@style/Base.Theme.ALARMAPP" />
 
         <LinearLayout
             android:id="@+id/comandTexts"
@@ -118,6 +131,7 @@
             android:layout_marginTop="16dp"
             android:gravity="start|fill|end"
             android:orientation="vertical"
+            android:theme="@style/Base.Theme.ALARMAPP"
             android:visibility="visible" />
 
         <LinearLayout
@@ -127,13 +141,15 @@
             android:layout_marginTop="16dp"
             android:gravity="start|fill|end"
             android:orientation="horizontal"
+            android:theme="@style/Base.Theme.ALARMAPP"
             android:visibility="visible">
 
             <Button
                 android:id="@+id/btnAddMore2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add More" />
+                android:text="Add More"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
             <Button
                 android:id="@+id/btnDeleteLast2"
@@ -141,7 +157,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="10dp"
-                android:text="Delete Last" />
+                android:text="Delete Last"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
         </LinearLayout>
 
@@ -149,7 +166,8 @@
             android:id="@+id/textView80"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="if you are a deep sleeper, u will be asked to enter a certain text so u be sure that u woke up, and didnt just close it while sleeping " />
+            android:text="if you are a deep sleeper, u will be asked to enter a certain text so u be sure that u woke up, and didnt just close it while sleeping "
+            android:theme="@style/Base.Theme.ALARMAPP" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -159,6 +177,7 @@
             android:layout_weight="1"
             android:gravity="start|fill|end"
             android:orientation="horizontal"
+            android:theme="@style/Base.Theme.ALARMAPP"
             android:visibility="visible">
 
             <TextView
@@ -169,7 +188,8 @@
                 android:text="NO"
                 android:textAllCaps="true"
                 android:textDirection="rtl"
-                android:textSize="30sp" />
+                android:textSize="30sp"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/isAnd0"
@@ -182,6 +202,7 @@
                 android:checked="false"
                 android:scaleX="1.5"
                 android:scaleY="1.5"
+                android:theme="@style/Base.Theme.ALARMAPP"
                 app:thumbTint="@color/black" />
 
             <TextView
@@ -192,7 +213,8 @@
                 android:text="YES"
                 android:textAlignment="textStart"
                 android:textAllCaps="true"
-                android:textSize="30sp" />
+                android:textSize="30sp"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
         </LinearLayout>
 
@@ -201,44 +223,91 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Select Apps to apply this rule on"
+            android:theme="@style/Base.Theme.ALARMAPP"
             app:layout_constraintBottom_toTopOf="@+id/button2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.942"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/linearLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:layout_marginTop="16dp"
-            android:gravity="start|fill|end"
-            android:layoutDirection="rtl"
-            android:orientation="horizontal"
-            android:visibility="visible">
+            android:layout_height="wrap_content"
+            android:gravity="end">
 
-            <Button
-                android:id="@+id/btnOk"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDelete"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="20dp"
-                android:text="OK" />
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:text="Delete"
+                android:padding="3dp"
+                android:paddingStart="3dp"
+                android:paddingLeft="3dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="3dp"
+                android:paddingRight="3dp"
+                android:paddingBottom="3dp"
+                app:iconPadding="3dp"
+                app:iconSize="1dp"
+                android:textSize="14sp"
+                android:theme="@style/Base.Theme.ALARMAPP"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
+
                 android:id="@+id/btnCancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:text="Cancel" />
+                android:padding="3dp"
+                android:paddingStart="3dp"
+                android:paddingLeft="3dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="3dp"
+                android:paddingRight="3dp"
+                android:paddingBottom="3dp"
+                android:text="Cancel"
+                android:textSize="14sp"
+                android:theme="@style/Base.Theme.ALARMAPP"
+                app:iconPadding="3dp"
+                app:iconSize="1dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
 
-            <Button
-                android:id="@+id/btnDelete"
+            <com.google.android.material.button.MaterialButton
+
+                android:id="@+id/btnOk"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="10dp"
-                android:layout_weight="0"
-                android:text="Delete" />
-
-        </LinearLayout>
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Save"
+                android:padding="3dp"
+                android:paddingStart="3dp"
+                android:paddingLeft="3dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="3dp"
+                android:paddingRight="3dp"
+                android:paddingBottom="3dp"
+                app:iconPadding="3dp"
+                app:iconSize="1dp"
+                android:textSize="14sp"
+                android:theme="@style/Base.Theme.ALARMAPP"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>
 </ScrollView>

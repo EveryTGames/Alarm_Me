@@ -1,11 +1,21 @@
 package com.etgames.alarmme;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 //this class is a workaround to use non final variable inside the lambda expression
@@ -29,6 +39,20 @@ public class Helperr {
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         newEditText.setHint("add a new one");
         newEditText.setText(data);
+
+        // Change underline (background) color
+        newEditText.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.edit_text_underline_color)));
+
+        // Change cursor color (requires drawable)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                newEditText.setTextCursorDrawable(null); // Only works on API 29+
+            }
+            newEditText.setTextColor(ContextCompat.getColor(context, R.color.white));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return newEditText;
     }
 
