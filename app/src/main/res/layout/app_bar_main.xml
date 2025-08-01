@@ -18,7 +18,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
+            android:background="@color/purple_700"
             app:popupTheme="@style/Base.Theme.ALARMAPP" />
 
     </com.google.android.material.appbar.AppBarLayout>
