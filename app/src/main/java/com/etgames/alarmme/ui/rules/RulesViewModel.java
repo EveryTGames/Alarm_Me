@@ -84,13 +84,17 @@ public class RulesViewModel extends ViewModel {
         SharedPreferences prefs = MainActivity.prefs;
 
         Set<String> currentSet = prefs.getStringSet("allRules", new HashSet<>());
+        Set<String> setToggledSet = MainActivity.prefs.getStringSet("toggledRules", new HashSet<>());
 
 
         Set<String> updatedSet = new HashSet<>(currentSet);
+        Set<String> updatedToggledSet = new HashSet<>(setToggledSet);
 
+        updatedToggledSet.add(newRuleId);
         updatedSet.add(newRuleId);
 
         prefs.edit().putStringSet("allRules", updatedSet).apply();
+        prefs.edit().putStringSet("toggledRules", updatedToggledSet).apply();
 
         loadRules();
     }

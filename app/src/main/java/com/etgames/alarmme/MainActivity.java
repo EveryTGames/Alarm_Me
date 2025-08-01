@@ -134,6 +134,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
+
+        prefs.edit().putBoolean("isOn",true).apply();
+
         new Thread(() -> {
             AlarmDataBase db = AlarmDataBase.getDatabase(MainActivity.this);
             List<Long> enabledAlarms = db.alarmDao().getAllEnabledAlarmIds();
@@ -423,6 +426,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void StopService() {
         // Remove the permanent notification
+        prefs.edit().putBoolean("isOn",false).apply();
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
             notificationManager.cancel(55);

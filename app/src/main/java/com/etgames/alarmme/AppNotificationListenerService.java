@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -166,6 +167,11 @@ public class AppNotificationListenerService extends android.service.notification
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
+        SharedPreferences prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
+        boolean isOn = prefs.getBoolean("isOn", false);
+        if (!isOn) {
+            return;
+        }
         // Handle notification events here
         Bundle extras = sbn.getNotification().extras;
 
