@@ -23,5 +23,8 @@
         android:fitsSystemWindows="true"
         android:theme="@style/Base.Theme.ALARMAPP"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/drawer_menu" />
+        app:menu="@menu/drawer_menu" >
+
+    </com.google.android.material.navigation.NavigationView>
+
 </androidx.drawerlayout.widget.DrawerLayout>

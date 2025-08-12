@@ -47,6 +47,9 @@ dependencies {
 
 
     implementation(libs.room.runtime)
+    implementation(libs.unity.ads)
+
+
 
     // If this project only uses Java source, use the Java annotationProcessor
     // No additional plugins are necessary

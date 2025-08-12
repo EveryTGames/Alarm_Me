@@ -1,5 +1,7 @@
 package com.etgames.alarmme.ui.rules;
 
+import static com.etgames.alarmme.MainActivity.prefs;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,12 +18,12 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.etgames.alarmme.AdManager;
 import com.etgames.alarmme.FabViewModel;
 import com.etgames.alarmme.MainActivity;
 import com.etgames.alarmme.R;
 import com.etgames.alarmme.RuleAdapter;
 import com.etgames.alarmme.databinding.FragmentRulesBinding;
-
 
 
 public class RulesFragment extends Fragment {
@@ -54,7 +56,9 @@ public class RulesFragment extends Fragment {
 
         return binding.getRoot();
     }
+
     static RuleAdapter ruleAdapter;
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -67,7 +71,13 @@ public class RulesFragment extends Fragment {
 
 
         // Observe FAB click
-        fabViewModel.fabClicked.observe(getViewLifecycleOwner(), unused -> rulesViewModel.showInputDialog(requireContext(), Integer.toString(MainActivity.lastID + 1),true));
+        fabViewModel.fabClicked.observe(getViewLifecycleOwner(), unused ->
+        {
+            if (prefs.getBoolean("adsOn", false)) {
+                AdManager.showInterstitial(requireActivity());
+            }
+            rulesViewModel.showInputDialog(requireContext(), Integer.toString(MainActivity.lastID + 1), true);
+        });
 
         rulesViewModel.openAppList.observe(getViewLifecycleOwner(), unused -> {
 
@@ -83,8 +93,11 @@ public class RulesFragment extends Fragment {
 
 
         ruleAdapter = new RuleAdapter(ruleId -> {
+            if (prefs.getBoolean("adsOn", false)) {
+                AdManager.showInterstitial(requireActivity());
+            }
             // Handle click: load apps for this rule
-            rulesViewModel.showInputDialog(requireContext(), ruleId,false);
+            rulesViewModel.showInputDialog(requireContext(), ruleId, false);
 
             Log.d("RULE_CLICK", "Clicked rule: " + ruleId);
         });
@@ -92,9 +105,6 @@ public class RulesFragment extends Fragment {
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(ruleAdapter);
-
-
-
 
 
     }

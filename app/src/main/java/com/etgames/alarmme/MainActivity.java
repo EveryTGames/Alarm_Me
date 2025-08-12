@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -102,6 +103,13 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
 
         setContentView(binding.getRoot());
+        prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
+
+        //prefs.edit().putBoolean("adsOn",true).apply();
+        if (prefs.getBoolean("adsOn", false)) {
+
+            AdManager.init(this); // Start Unity Ads
+        }
 
 
         int permissionState = ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS);
@@ -109,8 +117,6 @@ public class MainActivity extends AppCompatActivity {
         if (permissionState == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
         }
-
-
 
 
         setSupportActionBar(binding.appBarMain.toolbar);
@@ -121,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                 R.id.nav_alarms, R.id.nav_rules, R.id.nav_settings)
+                R.id.nav_alarms, R.id.nav_rules, R.id.nav_settings)
                 .setOpenableLayout(drawer)
                 .build();
 
@@ -133,9 +139,9 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
 
 
-        prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
 
-        prefs.edit().putBoolean("isOn",true).apply();
+
+        prefs.edit().putBoolean("isOn", true).apply();
 
         new Thread(() -> {
             AlarmDataBase db = AlarmDataBase.getDatabase(MainActivity.this);
@@ -144,10 +150,10 @@ public class MainActivity extends AppCompatActivity {
             for (Long id : enabledAlarms) {
                 idSet.add(String.valueOf(id));
             }
-            prefs.edit().putStringSet("toggledAlarms", new HashSet<>(idSet) ).apply();
+            prefs.edit().putStringSet("toggledAlarms", new HashSet<>(idSet)).apply();
         }).start();
 
-        Log.d("infoo",prefs.getString("succesfullyRegisteredAlarmsAfterBoot","not there :)"));
+        Log.d("infoo", prefs.getString("succesfullyRegisteredAlarmsAfterBoot", "not there :)"));
 
         toggledApps = prefs.getStringSet("toggled_apps", new HashSet<>());
         // i copied it again bc the returned one was a live set
@@ -157,11 +163,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("infoo", "toggled apps set is " + toggledApps.size() + " item");
 
 
-
-
-
         Log.d("infoo", " " + isNotificationListenerEnabled(this));
-
 
 
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "My Channel", NotificationManager.IMPORTANCE_DEFAULT);
@@ -172,16 +174,14 @@ public class MainActivity extends AppCompatActivity {
         lastID = Integer.parseInt(prefs.getString("lastID", "0"));
 
 
-
         fabViewModel = new ViewModelProvider(this).get(FabViewModel.class);
-
 
 
         fabViewModel.quiteFabClicked.observe(this, unused -> {
 
 
             StopService();
-           // Toast.makeText(this, "FAB clicked! in main activity", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(this, "FAB clicked! in main activity", Toast.LENGTH_SHORT).show();
         });
 
         fabViewModel.getShowFab().observe(this, visible -> {
@@ -426,7 +426,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void StopService() {
         // Remove the permanent notification
-        prefs.edit().putBoolean("isOn",false).apply();
+        prefs.edit().putBoolean("isOn", false).apply();
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
             notificationManager.cancel(55);
@@ -445,7 +445,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     public boolean stop() {
-
 
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID).setSmallIcon(R.drawable.ic_launcher_background).setContentTitle("the app is closed").setContentText("the service stopped, will no longer be able to listen to messages").setPriority(NotificationCompat.PRIORITY_DEFAULT).setOngoing(false);

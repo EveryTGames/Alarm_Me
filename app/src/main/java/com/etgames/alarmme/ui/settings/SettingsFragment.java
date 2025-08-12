@@ -4,7 +4,6 @@ import static android.app.Activity.RESULT_OK;
 import static android.content.Context.MODE_PRIVATE;
 
 
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.RingtoneManager;
@@ -15,6 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.Switch;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -23,7 +24,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.etgames.alarmme.AdManager;
 import com.etgames.alarmme.FabViewModel;
+import com.etgames.alarmme.R;
 import com.etgames.alarmme.databinding.FragmentSettingsBinding;
 
 public class SettingsFragment extends Fragment {
@@ -32,7 +35,6 @@ public class SettingsFragment extends Fragment {
     FragmentSettingsBinding binding;
 
     FabViewModel fabViewModel;
-
 
 
     @Nullable
@@ -49,7 +51,6 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
 
 
         // Example: make FAB visible
@@ -87,6 +88,34 @@ public class SettingsFragment extends Fragment {
             intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, currentTone);
             ringtonePickerLauncher.launch(intent);
         });
+        Button supportMe = binding.supportMe;
+        supportMe.setOnClickListener(v ->
+        {
+           AdManager.showRewarded(requireActivity());
+        });
+
+        Switch enableAds = binding.enableAds;
+        enableAds.setOnCheckedChangeListener(null);
+        enableAds.setChecked(prefs.getBoolean("adsOn", true));
+        enableAds.setOnCheckedChangeListener((v,state)->{
+
+
+            if (state)
+            {
+
+                prefs.edit().putBoolean("adsOn",true).apply();
+            }
+            else
+            {
+                prefs.edit().putBoolean("adsOn",false).apply();
+
+            }
+        });
+        if (prefs.getBoolean("adsOn", false)) {
+
+            FrameLayout bannerContainer = binding.bannerContainer;
+            AdManager.showBanner(requireActivity(), bannerContainer);
+        }
 
     }
 

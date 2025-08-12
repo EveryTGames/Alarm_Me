@@ -41,6 +41,12 @@ public class AppNotificationListenerService extends android.service.notification
     @Override
     public void onCreate() {
         super.onCreate();
+        SharedPreferences prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
+
+        boolean isOn = prefs.getBoolean("isOn", false);
+        if (!isOn) {
+            return;
+        }
         NotificationChannel channel = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             channel = new NotificationChannel(
@@ -167,11 +173,7 @@ public class AppNotificationListenerService extends android.service.notification
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        SharedPreferences prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
-        boolean isOn = prefs.getBoolean("isOn", false);
-        if (!isOn) {
-            return;
-        }
+
         // Handle notification events here
         Bundle extras = sbn.getNotification().extras;
 

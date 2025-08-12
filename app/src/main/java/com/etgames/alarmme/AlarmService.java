@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
@@ -82,7 +83,7 @@ public class AlarmService extends Service {
         launchStopScreenRunnable = new Runnable() {
             @Override
             public void run() {
-                checkVolume();
+              checkVolume();
                 if (!AlarmActivity.isActive) {
                     StartAlarmActivity(intent);
                 }
@@ -131,26 +132,45 @@ public class AlarmService extends Service {
         }
 
     }
+
     void startAlarm() {
-        // Initialize MediaPlayer
+        stopAlarmSound(); // Ensure any existing playback is stopped
+
         mediaPlayer = new MediaPlayer();
 
         try {
+            Uri currentTone = Uri.parse(
+                    prefs.getString(
+                            "AlarmTone",
+                            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()
+                    )
+            );
 
-            Uri currentTone = Uri.parse(prefs.getString("AlarmTone", RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()));
+            // Modern replacement for setAudioStreamType()
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM) // Mark as alarm
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC) // PCM/wav/mp3 content
+                    .build();
 
-            // Set the audio stream to ALARM
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-
-            // Set the data source to the default alarm sound
+            mediaPlayer.setAudioAttributes(audioAttributes);
             mediaPlayer.setDataSource(this, currentTone);
 
-            mediaPlayer.setLooping(true); // Set to loop the sound
-            mediaPlayer.prepare();       // Prepare the MediaPlayer
-            mediaPlayer.start();         // Start playing
-        } catch (Exception e) {
+            mediaPlayer.setLooping(true);
+            mediaPlayer.prepare();
+            mediaPlayer.start();
 
-            e.printStackTrace();
+        } catch (Exception e) {
+            Log.e("infoo", "Error starting alarm", e);
+        }
+    }
+
+    void stopAlarmSound() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+            } catch (Exception ignored) {}
+            mediaPlayer = null;
         }
     }
 

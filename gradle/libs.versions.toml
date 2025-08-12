@@ -12,6 +12,7 @@ navigationUiKtx = "2.9.2"
 roomCompiler = "2.7.2"
 roomCommonJvm = "2.7.2"
 roomRuntimeJvm = "2.7.2"
+unityAds = "4.7.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -26,6 +27,7 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvm" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
 room-runtime-jvm = { group = "androidx.room", name = "room-runtime-jvm", version.ref = "roomRuntimeJvm" }
+unity-ads = { group = "com.unity3d.ads", name = "unity-ads", version.ref = "unityAds" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

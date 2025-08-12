@@ -5,6 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <FrameLayout
+        android:id="@+id/bannerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="bottom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button3"
+        app:layout_constraintVertical_bias="0.95" />
+
     <TextView
         android:id="@+id/textView2"
         android:layout_width="392dp"
@@ -45,6 +57,30 @@
         app:layout_constraintVertical_bias="0.306" />
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/supportMe"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="PermissionService"
+        android:padding="10dp"
+        android:paddingStart="10dp"
+        android:paddingLeft="14dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="10dp"
+        android:paddingRight="14dp"
+        android:paddingBottom="10dp"
+        android:text="Support Me"
+        android:textColorLink="#2FFF0A"
+        android:textSize="14sp"
+        android:theme="@style/Base.Theme.ALARMAPP"
+        app:iconPadding="10dp"
+        app:iconSize="1dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2"
+        app:layout_constraintVertical_bias="0.599" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/SetRingTone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -66,4 +102,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
         app:layout_constraintVertical_bias="0.306" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="361dp"
+        android:layout_height="wrap_content"
+        android:text="ads are when editing or creating a rule only, anything else is ad-free"
+        android:textSize="14sp"
+        android:theme="@style/Base.Theme.ALARMAPP"
+        app:layout_constraintBottom_toTopOf="@+id/bannerContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/supportMe" />
+
+    <Switch
+        android:id="@+id/enableAds"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="enable Ads"
+        app:layout_constraintBottom_toTopOf="@+id/supportMe"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.511"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button3"
+        app:layout_constraintVertical_bias="0.569" />
 </androidx.constraintlayout.widget.ConstraintLayout>
