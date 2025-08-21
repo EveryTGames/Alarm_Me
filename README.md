@@ -1,53 +1,84 @@
 # Alarm Me
 
-**Alarm Me** is a smart notification-based alarm app for Android.  
-Instead of setting alarm times, you define rules for notifications from apps like WhatsApp, Messenger, or Discord. When a notification matches your criteria, the alarm is triggered.
+**Alarm Me** is an intelligent, rule-based alarm app for Android that wakes you up or alerts you only when it truly matters.  
+Unlike traditional alarms that rely on fixed times, Alarm Me listens to your notifications and activates based on the content, sender, and app — all customizable by you.
 
 ---
 
 ## How It Works
 
-For each app, you can define:
-- **Senders**: Specific names or allow all
-- **Keywords**: Words or phrases that trigger the alarm
+You create rules that define when an alarm should trigger, based on:
 
-If a notification matches both or one of them ( you control that ), the alarm activates instantly.
+- **Apps**: Choose from any installed app like WhatsApp, Messenger, Discord, etc.
+- **Senders**: Specify exact names, or allow all
+- **Keywords**: Trigger on certain words or phrases
+- **Mode**: Choose between AND (both must match) or OR (either matches)
+
+When a notification matches your rule, the alarm activates immediately.
 
 ---
 
-## Example Scenarios
+## Example Use Cases
 
-- WhatsApp: Alarm triggers if "n1" or "n2" sends "wake up" or "quiz"
-- Messenger: Any sender using `#important#` triggers the alarm
-- Discord: Any message from anyone triggers the alarm
+- **WhatsApp**: Alarm rings only if "John" sends a message containing "quiz"
+- **Messenger**: Any sender using `#urgent` in their message triggers an alarm
+- **Discord**: All messages, regardless of sender, activate the alarm
 
 ---
 
 ## Features
 
-- Multi-rule support per app (multiple senders and keywords)
-- Fast and reliable notification listener
-- Simple rule manager (add, edit, delete rules)
-- App search for easier rule assignment
+- 🔹 Smart Notification Triggering  
+- 🔹 Customizable Rules per App  
+- 🔹 Multiple Rules Supported  
+- 🔹 Deep Sleep Mode Toggle  
+- 🔹 Real-Time Alarm Activation  
+- 🔹 Modern, Responsive UI  
+- 🔹 Live Rule Editing and Management  
+- 🔹 Minimal Battery Usage  
 
 ---
 
-## Tech Stack
+## Architecture & Tech Stack
 
-- **Language**: Java  
-- **Core APIs**: Notification Listener, AlarmManager  
-- **Storage**: SharedPreferences  
-- **UI**: ListAdapter, Dialogs
+- **Architecture**: MVVM (Model-View-ViewModel)
+- **Language**: Java
+- **Persistence**: Room Database + SharedPreferences
+- **Core APIs**:
+  - `NotificationListenerService`
+  - `AlarmManager`
+  - `WorkManager` (for reliability)
+- **UI**:
+  - Material Components
+  - LiveData & ViewModel
+  - ListAdapter + Custom Dialogs
 
 ---
 
-## Permissions
+## Permissions Required
 
-- Requires **Notification Access**
-- All data is stored locally — no internet usage or tracking
+- **Notification Access**: To read and evaluate incoming notifications
+- **Overlay Permission (optional)**: For advanced features like floating controls
+
+> All data stays on your device. Alarm Me does not connect to the internet, nor does it track or upload any user data.
+
+---
+
+## What's New
+
+- 🌟 Rewritten using MVVM architecture for better maintainability and scalability  
+- 🌟 Migrated from SharedPreferences to Room Database for robust data handling  
+- 🌟 Improved UI with modern design and better accessibility  
+- 🌟 Optimized performance and responsiveness  
+- 🌟 Clean, thread-safe background operations using proper threading practices  
 
 ---
 
 ## Developer Note
 
-This was a challenging and rewarding project to build — designed to notify you when it truly matters.
+Alarm Me started as a simple idea but evolved into a full-featured, event-driven alarm app.  
+It's built with care, a lot of late nights, and a genuine desire to solve a real problem.
+
+If you’ve ever slept through an important message, you’ll understand the motivation behind this.
+
+Built solo, refined over time — and always improving.
