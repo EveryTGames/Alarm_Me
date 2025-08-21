@@ -24,7 +24,7 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="#565454"
         android:foregroundTint="#FF0000"
         android:text="not available wake up ok? sjcr492brgv"
         android:textColor="#000000"
@@ -35,12 +35,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
+    <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/passwordField"
         android:layout_width="wrap_content"
         android:layout_height="52dp"
         android:hint="Enter the Word...."
-        android:theme="@style/Base.Theme.ALARMAPP"
         app:layout_constraintBottom_toTopOf="@+id/stopBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

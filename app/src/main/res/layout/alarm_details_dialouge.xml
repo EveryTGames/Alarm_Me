@@ -7,7 +7,8 @@
     android:layout_height="wrap_content"
     android:background="@color/black"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:theme="@style/Base.Theme.ALARMAPP">
 
     <TextView
         android:id="@+id/dialogTitle"
@@ -26,15 +27,22 @@
         android:layout_marginBottom="16dp"
         android:timePickerMode="spinner" />
 
-    <EditText
-        android:id="@+id/editDescription"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/myTextInputLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:background="@android:drawable/editbox_dropdown_dark_frame"
-        android:hint="Description"
-        android:inputType="textPersonName"
-        android:padding="8dp" />
+        style="@style/Base.Theme.ALARMAPP"
+        android:hint="Description">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Base.Theme.ALARMAPP"
+            android:inputType="text" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -90,8 +98,6 @@
             android:id="@+id/btnDelete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:text="Delete"
             android:padding="3dp"
             android:paddingStart="3dp"
             android:paddingLeft="3dp"
@@ -99,10 +105,12 @@
             android:paddingEnd="3dp"
             android:paddingRight="3dp"
             android:paddingBottom="3dp"
-            app:iconPadding="3dp"
-            app:iconSize="1dp"
+            android:singleLine="true"
+            android:text="Delete"
             android:textSize="14sp"
             android:theme="@style/Base.Theme.ALARMAPP"
+            app:iconPadding="3dp"
+            app:iconSize="1dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
@@ -122,11 +130,11 @@
             android:paddingEnd="3dp"
             android:paddingRight="3dp"
             android:paddingBottom="3dp"
-            app:iconPadding="3dp"
-            app:iconSize="1dp"
+            android:text="Cancel"
             android:textSize="14sp"
             android:theme="@style/Base.Theme.ALARMAPP"
-            android:text="Cancel"
+            app:iconPadding="3dp"
+            app:iconSize="1dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
@@ -139,7 +147,6 @@
             android:id="@+id/btnSave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Save"
             android:padding="3dp"
             android:paddingStart="3dp"
             android:paddingLeft="3dp"
@@ -147,10 +154,11 @@
             android:paddingEnd="3dp"
             android:paddingRight="3dp"
             android:paddingBottom="3dp"
-            app:iconPadding="3dp"
-            app:iconSize="1dp"
+            android:text="Save"
             android:textSize="14sp"
             android:theme="@style/Base.Theme.ALARMAPP"
+            app:iconPadding="3dp"
+            app:iconSize="1dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"

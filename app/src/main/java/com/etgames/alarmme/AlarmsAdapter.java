@@ -36,7 +36,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
 
         @Override
         public boolean areContentsTheSame(@NonNull Alarm oldItem, @NonNull Alarm newItem) {
-            return oldItem.Description.equals( newItem.Description) && oldItem.Title.equals( newItem.Title) && oldItem.isEnabled == newItem.isEnabled;
+            return oldItem.Description.equals( newItem.Description) && oldItem.Title.equals( newItem.Title) && oldItem.isEnabled == newItem.isEnabled && oldItem.isDeepSleepMode == newItem.isDeepSleepMode;
         }
     };
 
@@ -56,6 +56,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
     class AlarmsViewHolder extends RecyclerView.ViewHolder {
         TextView alarmTitle;
         TextView alarmDescription;
+        TextView ruleDeepSleepMode;
         com.google.android.material.materialswitch.MaterialSwitch alarmSwitch;
 
         public AlarmsViewHolder(@NonNull View itemView) {
@@ -63,7 +64,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
             alarmTitle = itemView.findViewById(R.id.listItemTitle);
             alarmSwitch = itemView.findViewById(R.id.switch1);
             alarmDescription = itemView.findViewById(R.id.listItemDetails);
-
+            ruleDeepSleepMode = itemView.findViewById(R.id.listItemDeepSleepOption);
 
         }
 
@@ -94,6 +95,8 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
                     listener.onAlarmToggle(alarm, isChecked); // 🧠 Notify ViewModel
                 }
             });
+
+            ruleDeepSleepMode.setText(alarm.isDeepSleepMode?"Deep Sleep Mode is Enabled":"" );
 
 
             itemView.setOnClickListener(v -> {

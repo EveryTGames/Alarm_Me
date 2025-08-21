@@ -1,9 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
     <!-- Base application theme. -->
-    <style name="Theme.ALARMAPP" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.ALARMAPP" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="materialSwitchStyle">@style/CustomSwitchStyle</item>
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimaryVariant">@color/edit_text_underline_color</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
@@ -12,18 +16,37 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="materialSwitchStyle">@style/CustomSwitchStyle</item>
 
         <item name="buttonStyle">@style/MyRoundedButton</item>
-    </style>
-    <!-- Base application theme. -->
-    <style name="Base.Theme.ALARMAPP" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
-        <item name="materialSwitchStyle">@style/CustomSwitchStyle</item>
+        <item name="editTextStyle">@style/MyEditText</item>
+        <item name="textInputStyle">@style/CustomTextInputLayout</item>
+
+        <!-- Override hint color -->
+        <item name="colorOnSurfaceVariant">@color/white</item>
+
+
     </style>
     <style name="MyRoundedButton" parent="Widget.Material3.Button">
         <item name="cornerRadius">16dp</item>
 
+    </style>
+    <!-- in res/values/styles.xml -->
+    <style name="MyEditText" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <!-- Text color -->
+        <item name="android:textColor">@color/design_default_color_on_primary</item>
+        <!-- Hint color -->
+        <item name="hintTextColor">@color/custom_hint_color</item>
+        <!-- Cursor color -->
+        <item name="colorControlActivated">@color/design_default_color_primary</item>
+        <item name="colorControlHighlight">@color/black</item>
+
+        <!-- Background underline / box color -->
+        <item name="backgroundTint">@color/edit_text_underline_color</item>
+    </style>
+    <style name="CustomTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/edit_text_box_stroke_color</item>
+        <item name="hintTextColor">@color/edit_text_hint_color</item>
+        <item name="helperTextTextColor">@color/black</item>
+        <item name="errorTextColor">@color/black</item>
     </style>
 </resources>

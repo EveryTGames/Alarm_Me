@@ -23,6 +23,7 @@ import androidx.core.app.NotificationCompat;
 
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -37,6 +38,9 @@ public class AppNotificationListenerService extends android.service.notification
     private NotificationManager notificationManager;
     private final Handler handler = new Handler();
     private boolean alarmActive = false;
+
+    RuleDataBase db;
+
 
     @Override
     public void onCreate() {
@@ -71,6 +75,8 @@ public class AppNotificationListenerService extends android.service.notification
                 .setOngoing(true);
 
         startForeground(55, builder.build());
+
+        db = RuleDataBase.getDatabase(this);
     }
 
 
@@ -173,84 +179,69 @@ public class AppNotificationListenerService extends android.service.notification
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-
-        // Handle notification events here
         Bundle extras = sbn.getNotification().extras;
 
-        if (extras != null) {
-            // Log.d("infoo","extras not null");
+        if (extras == null) return;
 
-            String message = extras.getString("android.text");
-            String SenderName = extras.getString("android.title");
-            String packageName = sbn.getPackageName();
-            PackageDetailss pd = new PackageDetailss(this);
-           Set<String> toggledApps = PackageDetailss.prefs.getStringSet("toggled_apps", new HashSet<>());
-            if (toggledApps.contains(packageName)) {
-                String[] ids = PackageDetailss.getRulesIDs(packageName);
-                if(ids==null)
-                {
-                    Log.e("infoo","wait what? in notificationlistener, something is really wrong, the package name is in the toggled list, but doesnt have any IDs");
-                    return;
-                }
-                for (String id :
-                        ids) {
-                    Set<String> toggledRulesSet = PackageDetailss.prefs.getStringSet("toggledRules",new HashSet<>());
+        String message = extras.getString("android.text");
+        String senderName = extras.getString("android.title");
+        String packageName = sbn.getPackageName();
 
-                    if(!toggledRulesSet.contains(id))
-                    {
-                        continue;
-                    }
-                    pd = pd.retrieve(id);
+        new Thread(() -> {
+            RuleDao ruleDao = db.ruleDao();
 
+            Set<String> toggledApps = new HashSet<>(ruleDao.getAllToggledApps());
+            if (!toggledApps.contains(packageName)) return;
 
-                    if (message != null && SenderName != null) {
-
-                        boolean isSender = false;
-                        boolean isCommand = false;
-
-
-                        //here we now sure that it is one of our apps
-                        for (String _senderName :
-                                pd.preferedSenderName) {
-                            //change  :-    remember to overwrite the equal for this, so if the _senderName is "" then it be always true
-                            if (isSenderMatch(SenderName, _senderName)) {
-                                isSender = true;
-                                break;
-                            }
-
-                        }
-                        for (String command :
-                                pd.preferedContentCommands) {
-
-                            if (message.contains(command)) {
-                                isCommand = true;
-                                break;
-                            }
-
-                        }
-
-                        if (pd.isAnd) {
-                            if (isSender && isCommand) {
-                                triggerTheAlarm(pd.deepSleepMode);
-                                break;
-
-                            }
-
-                        } else if (isSender || isCommand) {
-
-                            triggerTheAlarm(pd.deepSleepMode);
-                            break;
-                        }
-
-                    }
-                }
-            } else {
+            List<Long> ids = ruleDao.getRuleIdsByAppName(packageName);
+            if (ids == null) {
+                Log.e("infoo", "No rule IDs found for package: " + packageName);
                 return;
             }
 
-        }
-    }
+            Set<Long> toggledRulesSet = new HashSet<>(ruleDao.getAllEnabledRules());
 
+            for (Long id : ids) {
+                if (!toggledRulesSet.contains(id)) continue;
+
+                Rule ruleData = ruleDao.getRuleById(id);
+                if (ruleData == null) continue;
+
+                boolean isSender = false;
+                boolean isCommand = false;
+
+                if (ruleData.preferedSenderName == null|| ruleData.preferedSenderName.isEmpty()) {
+                    isSender = true;
+                } else {
+
+                    for (String _senderName : ruleData.preferedSenderName) {
+                        if (isSenderMatch(senderName, _senderName)) {
+                            isSender = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (ruleData.preferedContentCommands == null ||ruleData.preferedContentCommands.isEmpty() ) {
+                    isCommand = true;
+                } else {
+                    for (String command : ruleData.preferedContentCommands) {
+                        if (message != null && message.contains(command)) {
+                            isCommand = true;
+                            break;
+                        }
+                    }
+                }
+
+                boolean shouldTrigger = ruleData.isAnd ? (isSender && isCommand) : (isSender || isCommand);
+
+                if (shouldTrigger) {
+                    triggerAlarmOnMain(ruleData.deepSleepMode);
+                    break;
+                }
+            }
+        }).start();
+    }
 
     public static void requestNotificationListenerAccess(Context context) {
         Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
@@ -264,6 +255,11 @@ public class AppNotificationListenerService extends android.service.notification
         Log.d("infoo", "the deepsleepmode in on start command for app notification listener is " + intent.getBooleanExtra("deepSleepMode", false));
 
         return super.onStartCommand(intent, flags, startId);
+    }
+
+
+    private void triggerAlarmOnMain(boolean deepSleepMode) {
+        new Handler(getMainLooper()).post(() -> triggerTheAlarm(deepSleepMode));
     }
 
     @Override

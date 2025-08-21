@@ -21,6 +21,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
+import java.util.Random;
+
 public class AlarmActivity extends AppCompatActivity {
     public static boolean isActive = false; // Track if the screen is open
 
@@ -103,6 +105,20 @@ public class AlarmActivity extends AppCompatActivity {
             password.setHint("");
             password.setEnabled(false);
 
+        }
+        else
+        {
+            String fixedText = "okay i will wake up, nop im alright ";
+            String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            StringBuilder randomThingBuilder = new StringBuilder();
+            Random random = new Random();
+
+            for (int i = 0; i < 10; i++) {
+                randomThingBuilder.append(chars.charAt(random.nextInt(chars.length())));
+            }
+
+            String randomThing = randomThingBuilder.toString();
+            passwordText.setText(fixedText + randomThing);
         }
 
         startRepeatingNotifications(this);

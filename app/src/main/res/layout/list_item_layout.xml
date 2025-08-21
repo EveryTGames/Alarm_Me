@@ -5,6 +5,7 @@
     android:id="@+id/list_item"
     android:layout_width="match_parent"
     android:layout_height="100dp"
+    android:background="#345E5E97"
     android:theme="@style/Base.Theme.ALARMAPP">
 
     <com.google.android.material.materialswitch.MaterialSwitch
@@ -27,7 +28,7 @@
     <TextView
         android:id="@+id/listItemTitle"
         android:layout_width="0dp"
-        android:layout_height="30dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="5dp"
         android:theme="@style/Base.Theme.ALARMAPP"
@@ -38,7 +39,7 @@
     <TextView
         android:id="@+id/listItemDetails"
         android:layout_width="0dp"
-        android:layout_height="70dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="5dp"
         android:ellipsize="none"
@@ -48,6 +49,21 @@
         app:layout_constraintEnd_toStartOf="@+id/switch1"
         app:layout_constraintStart_toEndOf="@+id/appIcon"
         app:layout_constraintTop_toBottomOf="@+id/listItemTitle" />
+
+    <TextView
+        android:id="@+id/listItemDeepSleepOption"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="5dp"
+        android:ellipsize="none"
+        android:singleLine="false"
+        android:textColor="@color/edit_text_box_stroke_color"
+        android:theme="@style/Base.Theme.ALARMAPP"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/switch1"
+        app:layout_constraintStart_toEndOf="@+id/appIcon"
+        app:layout_constraintTop_toBottomOf="@+id/listItemDetails" />
 
     <ImageView
         android:id="@+id/appIcon"

@@ -1,110 +1,166 @@
 package com.etgames.alarmme;
 
+import static com.google.android.material.R.color.design_default_color_error;
+
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.materialswitch.MaterialSwitch;
+import com.etgames.alarmme.ui.rules.RulesViewModel;
+
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
-public class RuleAdapter extends ListAdapter<String, RuleAdapter.RuleViewHolder> {
+public class RuleAdapter extends RecyclerView.Adapter<RuleAdapter.RuleViewHolder> {
 
     public interface OnRuleClickListener {
-        void onRuleClick(String ruleId);
+        void onRuleClick(Long ruleId);
     }
 
     private final OnRuleClickListener listener;
+    private List<RuleWithApps> rules;
+    private Set<Long> toggledRuleIds = new HashSet<>();
+    private Context context;
 
     public RuleAdapter(OnRuleClickListener listener) {
-        super(DIFF_CALLBACK);
         this.listener = listener;
     }
-
-    private static final DiffUtil.ItemCallback<String> DIFF_CALLBACK = new DiffUtil.ItemCallback<String>() {
-        @Override
-        public boolean areItemsTheSame(@NonNull String oldItem, @NonNull String newItem) {
-            return oldItem.equals(newItem);
-        }
-
-        @Override
-        public boolean areContentsTheSame(@NonNull String oldItem, @NonNull String newItem) {
-            return oldItem.equals(newItem);
-        }
-    };
 
     @NonNull
     @Override
     public RuleViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        context = parent.getContext();
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_layout, parent, false);
         return new RuleViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RuleViewHolder holder, int position) {
-        String ruleId = getItem(position);
-        holder.bind(ruleId);
+        RuleWithApps ruleWithApps = rules.get(position);
+        holder.bind(ruleWithApps);
+    }
+
+
+    private static final DiffUtil.ItemCallback<Rule> DIFF_CALLBACK = new DiffUtil.ItemCallback<Rule>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Rule oldItem, @NonNull Rule newItem) {
+            return oldItem.id == newItem.id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Rule oldItem, @NonNull Rule newItem) {
+            return Objects.equals(oldItem.ruleName, newItem.ruleName) && oldItem.deepSleepMode== newItem.deepSleepMode && oldItem.isEnabled == newItem.isEnabled ;
+        }
+    };
+
+
+    @Override
+    public int getItemCount() {
+        return rules != null ? rules.size() : 0;
+    }
+
+    public void setRules(List<RuleWithApps> rules) {
+        this.rules = rules;
+        notifyDataSetChanged();
+    }
+
+
+    public void setToggledRuleIds(Set<Long> toggledRuleIds) {
+        this.toggledRuleIds = toggledRuleIds != null ? toggledRuleIds : new HashSet<>();
+        notifyDataSetChanged();
     }
 
     class RuleViewHolder extends RecyclerView.ViewHolder {
         TextView ruleTitle;
-        com.google.android.material.materialswitch.MaterialSwitch ruleSwitch;
+        TextView ruleDescription;
+        TextView ruleDeepSleepMode;
+        MaterialSwitch ruleSwitch;
 
         public RuleViewHolder(@NonNull View itemView) {
             super(itemView);
-            ruleTitle = itemView.findViewById(R.id.listItemDetails);
+            ruleTitle = itemView.findViewById(R.id.listItemTitle);
             ruleSwitch = itemView.findViewById(R.id.switch1);
-
-
+            ruleDescription = itemView.findViewById(R.id.listItemDetails);
+            ruleDeepSleepMode = itemView.findViewById(R.id.listItemDeepSleepOption);
         }
 
+        public void bind(RuleWithApps ruleWithApps) {
+            Rule rule = ruleWithApps.rule;
+            boolean isToggled = toggledRuleIds.contains(rule.id);
+
+            ruleTitle.setText((rule.ruleName == null || rule.ruleName.isEmpty()) ? "Rule #" + rule.id : rule.ruleName);
+
+            // Display toggled apps names
+            PackageManager packageManager = context.getPackageManager();
+            StringBuilder appNamesBuilder = new StringBuilder();
+
+            for (ToggledApp packageName : ruleWithApps.toggledApps) {
+                try {
+                    ApplicationInfo appInfo = packageManager.getApplicationInfo(packageName.appName, 0);
+                    String appName = packageManager.getApplicationLabel(appInfo).toString();
+                    appNamesBuilder.append(appName).append(", ");
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            boolean empty = true;
+            if (appNamesBuilder.length() > 0) {
+                appNamesBuilder.setLength(appNamesBuilder.length() - 2); // remove last comma
+                empty = false;
+            }
+            if(empty)
+            {
+                ruleDescription.setText("No Apps selected, the rule will not work");
+
+                ruleDescription.setTextColor( ContextCompat.getColor(context, design_default_color_error));
+            }
+            else
+            {
+
+                ruleDescription.setText(appNamesBuilder.toString());
+                ruleDescription.setTextColor( ContextCompat.getColor(context, R.color.teal_200));
 
 
+            }
 
-        public void bind(String ruleId) {
-            boolean isToggled = toggleSet.contains(ruleId);
-            ruleTitle.setText("Rule #" + ruleId);
+            ruleDeepSleepMode.setText(rule.deepSleepMode ? "Deep Sleep Mode Enabled" : "");
+            ruleDeepSleepMode.setTextColor( ContextCompat.getColor(context, R.color.purple_700));
+
+
+            // Set switch state
             ruleSwitch.setOnCheckedChangeListener(null);
             ruleSwitch.setChecked(isToggled);
-            ruleSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            ruleSwitch.setOnCheckedChangeListener((buttonView, checked) -> {
+                if (checked) {
+                    rule.isEnabled = true;
 
-                if (isChecked) {
-                    toggleSet.add(ruleId);
-                    MainActivity.prefs.edit().putStringSet("toggledRules",toggleSet).apply();
-
-
-
-
+                    toggledRuleIds.add(rule.id);
                 } else {
-                    toggleSet.remove(ruleId);
+                    rule.isEnabled = false;
 
-                    MainActivity.prefs.edit().putStringSet("toggledRules", toggleSet).apply();
-                    //u will also make the logivc for saving the texts like the prefered command and prefered name
-                    // u will use shared preference normally
-                    // key: "package name"    value : "<preferered sender name><"or"  or "and" to determine if the user wants the sender name and one of the content messages to match in order to trigger the alarm, or just want any one of them>:#94710341#:<prefered content message 1>:#94710341#:<prefered content message 2 ... and so on>"
+                    toggledRuleIds.remove(rule.id);
                 }
+                new Thread(()->{
+                    MainActivity.db.ruleDao().updateRule(rule);
+                }).start();
+                notifyItemChanged(getAdapterPosition());
             });
-
-
 
             itemView.setOnClickListener(v -> {
-                if (listener != null) listener.onRuleClick(ruleId);
+                if (listener != null) listener.onRuleClick(rule.id);
             });
-
         }
-    }
-
-
-
-    private Set<String> toggleSet = new HashSet<>();
-
-    public void setToggleState(Set<String> toggleSet) {
-        this.toggleSet = toggleSet != null ? toggleSet : new HashSet<>();
-        notifyDataSetChanged(); // refresh all views with new toggle state
     }
 }

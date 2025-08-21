@@ -43,6 +43,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.room.InvalidationTracker;
 
 import com.etgames.alarmme.databinding.ActivityMainBinding;
 import com.google.android.material.navigation.NavigationView;
@@ -69,30 +70,23 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     public static boolean isLoaded = false;
 
-    public static Set<String> toggledApps;
 
     public static Set<String> toggledAppsForCurrentRule;
     public static SharedPreferences prefs;
 
 
-    public static void saveSet() {
-        prefs.edit().putStringSet("toggled_apps", toggledApps).apply();
-    }
 
-    public static void saveToggledAppsForRule(String ruleId, Set<String> toggledApps) {
-        prefs.edit().putStringSet("toggled_apps_" + ruleId, new HashSet<>(toggledApps)).apply();
-    }
 
     public static Set<String> getToggledAppsForRule(String ruleId) {
         return new HashSet<>(prefs.getStringSet("toggled_apps_" + ruleId, new HashSet<>()));
     }
 
-    public static String currentID;
 
     public static List<app_info> loadedApps;
     private AppBarConfiguration mAppBarConfiguration;
     public static int lastID;
 
+  public static   RuleDataBase db;
 
     FabViewModel fabViewModel;
 
@@ -105,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
 
+        db =  RuleDataBase.getDatabase(this);
         //prefs.edit().putBoolean("adsOn",true).apply();
         if (prefs.getBoolean("adsOn", false)) {
 
@@ -155,12 +150,9 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("infoo", prefs.getString("succesfullyRegisteredAlarmsAfterBoot", "not there :)"));
 
-        toggledApps = prefs.getStringSet("toggled_apps", new HashSet<>());
         // i copied it again bc the returned one was a live set
         //which means any change in it will be changed in the prefs, which will make weird behaviours
         // for my case it will not update after the first load
-        toggledApps = new HashSet<>(toggledApps);
-        Log.d("infoo", "toggled apps set is " + toggledApps.size() + " item");
 
 
         Log.d("infoo", " " + isNotificationListenerEnabled(this));
@@ -308,20 +300,41 @@ public class MainActivity extends AppCompatActivity {
     private void loadInstalledApps() {
 
 
-        PackageManager packageManager = getPackageManager();
-        List<ResolveInfo> installedApps = packageManager.queryIntentActivities(
-                new Intent(Intent.ACTION_MAIN, null)
-                        .addCategory(Intent.CATEGORY_LAUNCHER),
-                0);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        Log.d("infoo", "the installed apps list should be retrived with " + installedApps.size() + " of elemetns");
+        executor.execute(() -> {
+            PackageManager packageManager = getPackageManager();
+            List<ResolveInfo> installedApps = packageManager.queryIntentActivities(
+                    new Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER),
+                    0
+            );
 
-        loadedApps = new ArrayList<>();
-        for (ResolveInfo resolvedInfo : installedApps) {
+            List<app_info> tempList = new ArrayList<>();
 
-            boolean isToggled = toggledApps.contains(resolvedInfo.activityInfo.packageName);
-            loadedApps.add(new app_info(resolvedInfo.loadLabel(packageManager).toString(), resolvedInfo.activityInfo.packageName, resolvedInfo.loadIcon(packageManager), isToggled));
-        }
+            for (ResolveInfo resolvedInfo : installedApps) {
+                String packageName = resolvedInfo.activityInfo.packageName;
+
+                //  Call the database to check toggle status (in background)
+                boolean isToggled = MainActivity.db.ruleDao().isAppToggled(packageName);
+
+                app_info app = new app_info(
+                        resolvedInfo.loadLabel(packageManager).toString(),
+                        packageName,
+                        resolvedInfo.loadIcon(packageManager),
+                        isToggled
+                );
+
+                tempList.add(app);
+            }
+
+            //  Update `loadedApps` and post to UI thread if needed
+            loadedApps = tempList;
+
+            runOnUiThread(() -> {
+                // e.g., notify adapter or Toast
+                Toast.makeText(this, "Apps loaded with toggle states", Toast.LENGTH_SHORT).show();
+            });
+        });
 
     }
 

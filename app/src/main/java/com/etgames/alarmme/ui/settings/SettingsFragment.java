@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Debug;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -96,7 +97,9 @@ public class SettingsFragment extends Fragment {
 
         Switch enableAds = binding.enableAds;
         enableAds.setOnCheckedChangeListener(null);
-        enableAds.setChecked(prefs.getBoolean("adsOn", true));
+        boolean x = prefs.getBoolean("adsOn", true);
+        Log.d("infoo", "the switch is " + x);
+        enableAds.setChecked(x);
         enableAds.setOnCheckedChangeListener((v,state)->{
 
 
@@ -104,10 +107,14 @@ public class SettingsFragment extends Fragment {
             {
 
                 prefs.edit().putBoolean("adsOn",true).apply();
+                boolean t = prefs.getBoolean("adsOn", true);
+                Log.d("infoo", "the switch after change4 is " + t);
             }
             else
             {
                 prefs.edit().putBoolean("adsOn",false).apply();
+                boolean t = prefs.getBoolean("adsOn", true);
+                Log.d("infoo", "the switch after change is " + t);
 
             }
         });

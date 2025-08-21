@@ -69,6 +69,8 @@ public class AlarmService extends Service {
     private Runnable launchStopScreenRunnable;
     public static SharedPreferences prefs;
 
+    final int[] lastPosition = {-1}; // using array to make it effectively final
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(1, createNotification());
@@ -83,11 +85,31 @@ public class AlarmService extends Service {
         launchStopScreenRunnable = new Runnable() {
             @Override
             public void run() {
-              checkVolume();
+                checkVolume();
                 if (!AlarmActivity.isActive) {
                     StartAlarmActivity(intent);
                 }
 
+
+                // Log.d("infoo", "Position: "+mediaPlayer.getCurrentPosition() +", Duration: " + mediaPlayer.getDuration());
+                //this fixes the problem that the media player stops playing suddenly
+
+                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                    int currentPosition = mediaPlayer.getCurrentPosition();
+                    Log.d("infoo", "Current: " + currentPosition + ", Last: " + lastPosition[0]);
+
+                    if (currentPosition == lastPosition[0]) {
+                        // Stuck detected!
+                        Log.d("infoo", "MediaPlayer is stuck or playback finished unexpectedly,restarting it now");
+
+                        startAlarm();
+
+                    } else {
+                        lastPosition[0] = currentPosition;
+                    }
+                } else {
+                    Log.d("infoo", "MediaPlayer is not playing");
+                }
                 // Re-run after 3 seconds if still active
                 handler.postDelayed(this, 1500);
             }
@@ -98,6 +120,7 @@ public class AlarmService extends Service {
     }
 
     void stopAlarm() {
+        stopped = true;
         if (mediaPlayer != null) {
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
@@ -111,8 +134,7 @@ public class AlarmService extends Service {
         }
     }
 
-    void checkVolume()
-    {
+    void checkVolume() {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         int currentAlarm = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
@@ -133,11 +155,13 @@ public class AlarmService extends Service {
 
     }
 
+    boolean stopped = false;
+
     void startAlarm() {
         stopAlarmSound(); // Ensure any existing playback is stopped
 
         mediaPlayer = new MediaPlayer();
-
+        mediaPlayer.reset();
         try {
             Uri currentTone = Uri.parse(
                     prefs.getString(
@@ -155,6 +179,11 @@ public class AlarmService extends Service {
             mediaPlayer.setAudioAttributes(audioAttributes);
             mediaPlayer.setDataSource(this, currentTone);
 
+            mediaPlayer.setOnCompletionListener((z) -> {
+                Log.d("infoo", "Alarm finished playing");
+                // handle cleanup or next step
+            });
+            mediaPlayer.setScreenOnWhilePlaying(true);
             mediaPlayer.setLooping(true);
             mediaPlayer.prepare();
             mediaPlayer.start();
@@ -165,17 +194,21 @@ public class AlarmService extends Service {
     }
 
     void stopAlarmSound() {
+
         if (mediaPlayer != null) {
             try {
+
+
                 mediaPlayer.stop();
                 mediaPlayer.release();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             mediaPlayer = null;
         }
     }
 
     void StartAlarmActivity(Intent intent) {
-        Log.d("infoo", "the service for the alarm activity started");
+
         Intent alarmActivityIntent = new Intent(this, AlarmActivity.class);
         alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -183,7 +216,7 @@ public class AlarmService extends Service {
         Log.d("infoo", "the deepsleepmode in alarm service is " + intent.getBooleanExtra("deepSleepMode", false));
 
         startActivity(alarmActivityIntent);
-        Log.d("infoo", "the service for the alarm activity started");
+        Log.d("infoo", "the service started the alarm activity");
 
 
     }

@@ -1,5 +1,6 @@
 package com.etgames.alarmme.ui.alarms;
 
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import com.etgames.alarmme.Alarm;
 import com.etgames.alarmme.AlarmsAdapter;
 import com.etgames.alarmme.FabViewModel;
 
+import com.etgames.alarmme.R;
 import com.etgames.alarmme.databinding.FragmentAlarmsBinding;
 
 public class AlarmsFragment extends Fragment {
@@ -107,6 +109,19 @@ public class AlarmsFragment extends Fragment {
 
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.recycler_item_spacing);
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull Rect outRect, @NonNull View view,
+                                       @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                outRect.top = spacingInPixels;
+
+                // Optional: Add bottom margin only for the last item
+                if (parent.getChildAdapterPosition(view) == parent.getAdapter().getItemCount() - 1) {
+                    outRect.bottom = spacingInPixels;
+                }
+            }
+        });
         recyclerView.setAdapter(alarmAdapter);
 
 
