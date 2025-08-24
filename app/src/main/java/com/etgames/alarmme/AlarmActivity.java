@@ -109,7 +109,7 @@ public class AlarmActivity extends AppCompatActivity {
         else
         {
             String fixedText = "okay i will wake up, nop im alright ";
-            String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            String chars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789";
             StringBuilder randomThingBuilder = new StringBuilder();
             Random random = new Random();
 
