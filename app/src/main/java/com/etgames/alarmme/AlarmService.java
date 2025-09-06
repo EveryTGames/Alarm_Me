@@ -135,6 +135,11 @@ public class AlarmService extends Service {
     }
 
     void checkVolume() {
+        // Skip in debug mode
+        if (BuildConfig.DEBUG) {
+            Log.d("AlarmService", "App is in DEBUG mode — skipping volume check");
+            return;
+        }
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         int currentAlarm = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
@@ -213,6 +218,7 @@ public class AlarmService extends Service {
         alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         alarmActivityIntent.putExtra("deepSleepMode", intent.getBooleanExtra("deepSleepMode", false));
+        alarmActivityIntent.putExtra("alarm_id", intent.getLongExtra("alarm_id", -1));
         Log.d("infoo", "the deepsleepmode in alarm service is " + intent.getBooleanExtra("deepSleepMode", false));
 
         startActivity(alarmActivityIntent);

@@ -1,5 +1,7 @@
 package com.etgames.alarmme;
 
+import android.graphics.Color;
+
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -10,6 +12,8 @@ public class Alarm {
 
     public int hour;
     public int minute;
+    public String photoUri;
+    public int backGroundColor = Color.YELLOW;
     public boolean isEnabled;
     public String Description;
     public String Title;

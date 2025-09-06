@@ -26,6 +26,7 @@ import com.etgames.alarmme.MainActivity;
 import com.etgames.alarmme.R;
 import com.etgames.alarmme.SingleLiveEvent;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
@@ -35,9 +36,16 @@ public class AlarmsViewModel extends AndroidViewModel {
 
     private final AlarmDao alarmDao;
     private final MediatorLiveData<Pair<List<Alarm>, HashSet<String>>> alarmsLiveData = new MediatorLiveData<>();
-    public SingleLiveEvent<Alarm> startScheduleAlarm = new SingleLiveEvent<>();
     private final MutableLiveData<String> mText = new MutableLiveData<>();
-
+    public PhotoPickListener photoPickListener; // Fragment sets this
+    public SingleLiveEvent<Alarm> startScheduleAlarm = new SingleLiveEvent<>();
+    public String tempPhotoUri;
+    boolean isCurrentNewAlarm;
+    Alarm currentAlarm;
+    /**
+     * the first is "should the image be deleted?", and the second is the path to the image
+     */
+    Pair<Boolean, String> flagToDeleteTheImage = new Pair<>(false, null);
 
 
     public AlarmsViewModel(@NonNull Application application) {
@@ -62,16 +70,23 @@ public class AlarmsViewModel extends AndroidViewModel {
 
     }
 
+    public void pickPhotoResult(boolean result) {
+
+        if (result) {
+            if (!isCurrentNewAlarm) {
+
+                flagToDeleteTheImage = new Pair<>(true, currentAlarm.photoUri);
+                currentAlarm.photoUri = null;
+            }
+        }
+    }
+
     public LiveData<String> getText() {
         return mText;
     }
 
     public LiveData<Pair<List<Alarm>, HashSet<String>>> getAlarmsLiveData() {
         return alarmsLiveData;
-    }
-
-    public interface AlarmInsertedCallback {
-        void onAlarmInserted(Alarm alarm);
     }
 
     public void insertAlarm(Alarm alarm, AlarmInsertedCallback callback) {
@@ -161,8 +176,9 @@ public class AlarmsViewModel extends AndroidViewModel {
         return formattedHour + " : " + formattedMinute + " " + amPm;
     }
 
-
-    public void showInputDialog(Context context, boolean newAlarm, Alarm alarm) {
+    public void showInputDialog(Context context, boolean _isCurrentNewAlarm, Alarm _currentAlarm) {
+        isCurrentNewAlarm = _isCurrentNewAlarm;
+        currentAlarm = _currentAlarm;
         View dialogView = LayoutInflater.from(context).inflate(R.layout.alarm_details_dialouge, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogView);
@@ -174,42 +190,75 @@ public class AlarmsViewModel extends AndroidViewModel {
         Switch switchRepeating = dialogView.findViewById(R.id.switchRepeating);
         Switch switchDeepSleep = dialogView.findViewById(R.id.switchDeepSleep);
         Button btnDelete = dialogView.findViewById(R.id.btnDelete);
-        if (newAlarm) {
+
+        if (isCurrentNewAlarm) {
             btnDelete.setEnabled(false);
         }
 // Set values from alarm
-        timePicker.setHour(alarm.hour);
-        timePicker.setMinute(alarm.minute);
-        editDescription.setText(alarm.Description);
-        switchRepeating.setChecked(alarm.isRepeating);
-        switchDeepSleep.setChecked(alarm.isDeepSleepMode);
+        timePicker.setHour(currentAlarm.hour);
+        timePicker.setMinute(currentAlarm.minute);
+        editDescription.setText(currentAlarm.Description);
+        switchRepeating.setChecked(currentAlarm.isRepeating);
+        switchDeepSleep.setChecked(currentAlarm.isDeepSleepMode);
 
 
-        dialogView.findViewById(R.id.btnCancel).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.btnAddPhoto).setOnClickListener(v -> {
+            if (photoPickListener != null) {
+
+
+                photoPickListener.onPickPhotoRequested();
+
+
+            }
+        });
+
+
+        dialogView.findViewById(R.id.btnCancel).setOnClickListener(v -> {
+
+
+            deleteImageFileIfExists(tempPhotoUri);
+
+            dialog.dismiss();
+
+        });
 
         dialogView.findViewById(R.id.btnSave).setOnClickListener(v -> {
-            alarm.hour = timePicker.getHour();
-            alarm.minute = timePicker.getMinute();
-            alarm.Title = convertTime(timePicker.getHour(), timePicker.getMinute());
-            alarm.Description = editDescription.getText().toString();
-            alarm.isRepeating = switchRepeating.isChecked();
-            alarm.isDeepSleepMode = switchDeepSleep.isChecked();
+            currentAlarm.hour = timePicker.getHour();
+            currentAlarm.minute = timePicker.getMinute();
+            currentAlarm.Title = convertTime(timePicker.getHour(), timePicker.getMinute());
+            currentAlarm.Description = editDescription.getText().toString();
+            currentAlarm.isRepeating = switchRepeating.isChecked();
+            currentAlarm.isDeepSleepMode = switchDeepSleep.isChecked();
+            //this if statment is for if the user didnt update the photo while there is already existing photo, it should be still remain there
+            if (currentAlarm.photoUri == null || tempPhotoUri != null) {
+                currentAlarm.photoUri = tempPhotoUri;
+            }
+            tempPhotoUri = null;
 
-            if (newAlarm) {
+            if (flagToDeleteTheImage.first) {
+                deleteImageFileIfExists(flagToDeleteTheImage.second);
 
-                insertAlarm(alarm, (_alarm) -> startScheduleAlarm.postValue(_alarm));
+            }
+            if (isCurrentNewAlarm) {
+
+                insertAlarm(currentAlarm, (_alarm) -> startScheduleAlarm.postValue(_alarm));
             } else {
 
-                updateAlarm(alarm,_alarm -> startScheduleAlarm.postValue(_alarm));
+                updateAlarm(currentAlarm, _alarm -> startScheduleAlarm.postValue(_alarm));
             }
             dialog.dismiss();
         });
 
-        btnDelete.setOnClickListener(v ->
-        {
+        btnDelete.setOnClickListener(v -> {
+            //these two lines to make the alarm unscheduled before deleting if it was enabled
+            if (currentAlarm.isEnabled) {
 
-            startScheduleAlarm.setValue(alarm);
-            deleteAlarm(alarm);
+                currentAlarm.isEnabled = false;
+                startScheduleAlarm.setValue(currentAlarm);
+            }
+
+            deleteImageFileIfExists(currentAlarm.photoUri);
+            deleteAlarm(currentAlarm);
             dialog.dismiss();
         });
 
@@ -217,11 +266,29 @@ public class AlarmsViewModel extends AndroidViewModel {
         dialog.show();
     }
 
+    private void deleteImageFileIfExists(String imagePath) {
+        if (imagePath == null || imagePath.isEmpty()) {
+            Log.w("infoo", "no image saved to delete ");
+
+            return;
+        }
+
+        File imageFile = new File(imagePath);
+        if (imageFile.exists()) {
+            boolean deleted = imageFile.delete();
+            if (!deleted) {
+                Log.w("infoo", "Failed to delete image: " + imageFile.getAbsolutePath());
+            } else {
+                Log.d("infoo", "deleted image: " + imageFile.getAbsolutePath());
+
+            }
+        }
+    }
 
     public void toggleAlarm(Alarm alarm, boolean enabled, Context context) {
         alarm.isEnabled = enabled;
 
-        updateAlarm(alarm,null);
+        updateAlarm(alarm, null);
 
         if (enabled) {
             Log.d("infoo", "the alarm id being scheduled is " + alarm.id);
@@ -232,6 +299,15 @@ public class AlarmsViewModel extends AndroidViewModel {
 
             AlarmScheduler.cancelAlarm(context, alarm);
         }
+    }
+
+
+    public interface PhotoPickListener {
+        void onPickPhotoRequested();
+    }
+
+    public interface AlarmInsertedCallback {
+        void onAlarmInserted(Alarm alarm);
     }
 
 

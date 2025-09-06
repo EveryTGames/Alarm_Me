@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.Settings;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
@@ -32,15 +33,27 @@ public class AppNotificationListenerService extends android.service.notification
 
     private static final String LOGGER_TAG = "infoo";
 
-
+    private static final int SERVICE_NOTIF_ID = 55;
+    private static final String SERVICE_CHANNEL_ID = "ServiceChannel";
     private static final String CHANNEL_ID = "ALARM_CHANNEL";
-    private static final int NOTIFICATION_ID = 123;
-    private NotificationManager notificationManager;
-    private final Handler handler = new Handler();
-    private boolean alarmActive = false;
-
+    private final Handler handler = new Handler(Looper.getMainLooper());
     RuleDataBase db;
+    private NotificationManager notificationManager;
 
+
+    public static void restartNotificationListener(Context context) {
+        ComponentName componentName = new ComponentName(context, AppNotificationListenerService.class);
+
+        PackageManager pm = context.getPackageManager();
+        pm.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+
+        pm.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+    }
+
+    public static void requestNotificationListenerAccess(Context context) {
+        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+        context.startActivity(intent);
+    }
 
     @Override
     public void onCreate() {
@@ -53,11 +66,7 @@ public class AppNotificationListenerService extends android.service.notification
         }
         NotificationChannel channel = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            channel = new NotificationChannel(
-                    "MyServiceChannel",
-                    "Service Notifications",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
+            channel = new NotificationChannel(SERVICE_CHANNEL_ID, "Service Notifications", NotificationManager.IMPORTANCE_MIN);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             channel.setDescription("Channel for foreground service");
@@ -67,22 +76,71 @@ public class AppNotificationListenerService extends android.service.notification
             manager.createNotificationChannel(channel);
         }
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "MyServiceChannel")
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("Notification Listener Active")
-                .setContentText("Listening for alarm commands...")
-                .setPriority(NotificationCompat.PRIORITY_MIN)
-                .setOngoing(true);
+        // Create and show the initial notification
+        showPersistentNotification();
 
-        startForeground(55, builder.build());
+        // Start monitoring to auto-recover notification if swiped
+        startNotificationMonitor();
 
         db = RuleDataBase.getDatabase(this);
     }
 
-
     public void AlarmNotifier(Context context) {
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         createNotificationChannel();
+    }
+
+
+    private void startNotificationMonitor() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                boolean isNotificationShown = false;
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    StatusBarNotification[] activeNotifs = manager.getActiveNotifications();
+                    for (StatusBarNotification notif : activeNotifs) {
+                        if (notif.getId() == SERVICE_NOTIF_ID) {
+                            isNotificationShown = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!isNotificationShown) {
+                    Log.w("infoo", "Notification was swiped or removed. Re-displaying.");
+                    showPersistentNotification(); //  Recreate the notification
+                }
+
+                // Re-check every 5 seconds
+                handler.postDelayed(this, 5000);
+            }
+        });
+    }
+
+    private void showPersistentNotification() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        Notification notification = new NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("Alarm Service Active")
+                .setContentText("Listening for alarm commands...")
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setOngoing(true)
+                .setContentIntent(pendingIntent)  //  this opens the app when tapped
+                .build();
+
+        startForeground(SERVICE_NOTIF_ID, notification);
     }
 
     private void createNotificationChannel() {
@@ -96,9 +154,6 @@ public class AppNotificationListenerService extends android.service.notification
         }
     }
 
-    private Notification buildNotification(Context context) {
-        return new NotificationCompat.Builder(context, CHANNEL_ID).setSmallIcon(android.R.drawable.ic_dialog_alert).setContentTitle("Alarm Ringing!").setContentText("Tap to dismiss").setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).build();
-    }
 
     void triggerTheAlarm(boolean deepSleepMode) {
 
@@ -109,12 +164,7 @@ public class AppNotificationListenerService extends android.service.notification
         Log.d("infoo", "deep sleep mode in appnotification listenerSercice is " + deepSleepMode);
         intent.setAction("com.etgames.trigerAlarm");
         // Use FLAG_UPDATE_CURRENT to ensure the new extras are respected
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID).setSmallIcon(R.drawable.ic_launcher_background).setContentTitle("WAKE UP").setContentText("the command received.").setDefaults(Notification.DEFAULT_SOUND).setAutoCancel(true);
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -131,51 +181,12 @@ public class AppNotificationListenerService extends android.service.notification
 
     }
 
-    void startRepeatingNotifications(Context context) {
-        if (alarmActive) return; // Avoid multiple triggers
-        alarmActive = true;
-
-        Runnable sendNotification = new Runnable() {
-            @Override
-            public void run() {
-                if (!alarmActive) return;
-                notificationManager.notify(NOTIFICATION_ID, buildNotification(context));
-                handler.postDelayed(this, 2000); // Sends notification every 2 seconds
-            }
-        };
-
-        handler.post(sendNotification);
-    }
-
-    public void stopNotifications() {
-        alarmActive = false;
-        notificationManager.cancel(NOTIFICATION_ID);
-    }
-
     private boolean isSenderMatch(String senderName, String targetName) {
         if (targetName == null || targetName.isEmpty()) {
             return true;
         }
         return senderName.equals(targetName);
     }
-
-    public static void restartNotificationListener(Context context) {
-        ComponentName componentName = new ComponentName(context, AppNotificationListenerService.class);
-
-        PackageManager pm = context.getPackageManager();
-        pm.setComponentEnabledSetting(
-                componentName,
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP
-        );
-
-        pm.setComponentEnabledSetting(
-                componentName,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP
-        );
-    }
-
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
@@ -210,7 +221,7 @@ public class AppNotificationListenerService extends android.service.notification
                 boolean isSender = false;
                 boolean isCommand = false;
 
-                if (ruleData.preferedSenderName == null|| ruleData.preferedSenderName.isEmpty()) {
+                if (ruleData.preferedSenderName == null || ruleData.preferedSenderName.isEmpty()) {
                     isSender = true;
                 } else {
 
@@ -222,7 +233,7 @@ public class AppNotificationListenerService extends android.service.notification
                     }
                 }
 
-                if (ruleData.preferedContentCommands == null ||ruleData.preferedContentCommands.isEmpty() ) {
+                if (ruleData.preferedContentCommands == null || ruleData.preferedContentCommands.isEmpty()) {
                     isCommand = true;
                 } else {
                     for (String command : ruleData.preferedContentCommands) {
@@ -243,18 +254,12 @@ public class AppNotificationListenerService extends android.service.notification
         }).start();
     }
 
-    public static void requestNotificationListenerAccess(Context context) {
-        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-        context.startActivity(intent);
-    }
-
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("infoo", "on start command called, service started?");
         Log.d("infoo", "the deepsleepmode in on start command for app notification listener is " + intent.getBooleanExtra("deepSleepMode", false));
 
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
 
@@ -284,6 +289,7 @@ public class AppNotificationListenerService extends android.service.notification
 
     @Override
     public void onDestroy() {
+        handler.removeCallbacksAndMessages(null); // Prevent memory leaks
         Log.d("infoo", "destroy have been called, service stopped?");
         super.onDestroy();
 

@@ -7,6 +7,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,144 +17,126 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.etgames.alarmme.ui.alarm.AlarmViewModel;
+import com.etgames.alarmme.utils.NotificationHelper;
 
 import java.util.Random;
 
 public class AlarmActivity extends AppCompatActivity {
-    public static boolean isActive = false; // Track if the screen is open
 
+    public static boolean isActive = false;
+    private AlarmViewModel viewModel;
 
+    private EditText passwordField;
+    private TextView alarmDescription, passwordText, passwordInstructions;
+    private ConstraintLayout background;
+    private ImageView image;
+    private String requiredText = "";
 
-    private static final int NOTIFICATION_ID = 123;
-    private NotificationManager notificationManager;
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean alarmActive = false;
-    public void AlarmNotifier(Context context) {
-        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        createNotificationChannel();
-    }
-    void startRepeatingNotifications(Context context) {
-        if (alarmActive) return; // Avoid multiple triggers
-        alarmActive = true;
-
-        Runnable sendNotification = new Runnable() {
-            @Override
-            public void run() {
-                if (!alarmActive) return;
-                notificationManager.notify(NOTIFICATION_ID, buildNotification(context));
-                handler.postDelayed(this, 2000); // Sends notification every 2 seconds
-            }
-        };
-
-        handler.post(sendNotification);
-    }
-    public static final String CHANNEL_ID = "myAlarm";
-
-    private Notification buildNotification(Context context) {
-        return new NotificationCompat.Builder(context, CHANNEL_ID).setSmallIcon(android.R.drawable.ic_dialog_alert).setContentTitle("Alarm Ringing!").setContentText("").setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).build();
-    }
-
-    private void createNotificationChannel() {
-        NotificationChannel channel = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            channel = new NotificationChannel(CHANNEL_ID, "Alarm Notifications", NotificationManager.IMPORTANCE_HIGH);
-
-            notificationManager.createNotificationChannel(channel);
-        } else {
-            Toast.makeText(getApplicationContext(), "the api is below 26", Toast.LENGTH_SHORT).show();
-        }
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("infoo", "the activity srtarted");
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true);
-
-            setTurnScreenOn(true);
-            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            keyguardManager.requestDismissKeyguard(this, null);
-
-            getWindow().addFlags(
-                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-            );
-        } else {
-            Toast.makeText(getApplicationContext(), "the api is below 27", Toast.LENGTH_SHORT).show();
-        }
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_alarm);
 
+        unlockScreen();
+        NotificationHelper.createNotificationChannel(this);
+        NotificationHelper.startRepeatingNotifications(this);
 
-       AlarmNotifier(this);
+        initUI();
+        initViewModel();
+        handleIntent();
+        setupStopButton();
+    }
 
-        boolean deepSleepMode = getIntent().getBooleanExtra("deepSleepMode",false);
-        Log.d("infoo","the deepsleepmode in alarm activity is " + deepSleepMode);
-        Button stopButton = findViewById(R.id.stopBtn);
-        EditText password = findViewById(R.id.passwordField);
-        TextView passwordText = findViewById(R.id.textView);
-        TextView passwordInstructions = findViewById(R.id.textView9);
-
-        if(!deepSleepMode)
-        {
-            passwordInstructions.setText("just press the button to stop");
-            passwordText.setText("");
-            password.setHint("");
-            password.setEnabled(false);
-
+    private void unlockScreen() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+            KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            km.requestDismissKeyguard(this, null);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            Toast.makeText(this, "API < 27", Toast.LENGTH_SHORT).show();
         }
-        else
-        {
-            String fixedText = "okay i will wake up, nop im alright ";
-            String chars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789";
-            StringBuilder randomThingBuilder = new StringBuilder();
-            Random random = new Random();
+    }
 
-            for (int i = 0; i < 10; i++) {
-                randomThingBuilder.append(chars.charAt(random.nextInt(chars.length())));
+    private void initUI() {
+        passwordField = findViewById(R.id.passwordField);
+        passwordText = findViewById(R.id.textView);
+        passwordInstructions = findViewById(R.id.instructionText);
+        alarmDescription = findViewById(R.id.alarmDescription);
+        background = findViewById(R.id.mainBackGround);
+        image = findViewById(R.id.Image);
+    }
+
+    private void initViewModel() {
+        viewModel = new ViewModelProvider(this).get(AlarmViewModel.class);
+        viewModel.getUiState().observe(this, ui -> {
+            if (ui == null) return;
+
+            if (ui.photoUri != null) {
+                Bitmap bitmap = BitmapFactory.decodeFile(ui.photoUri);
+                image.setImageBitmap(bitmap);
+            } else {
+                image.setImageResource(0);
+                //TODO u will add some text that can be changed for each alarm that be displayed with the alarm, diffrent tha the password instructions and hint
+                //TODO add all of these things to the create alarm dialogue so that the user can create or edit them
+                Log.w("infoo", "No image URI to load");
             }
+            background.setBackgroundColor(ui.backgroundColor);
+            passwordText.setText(ui.displayText);
+            passwordField.setEnabled(ui.isPasswordFieldEnabled);
+            alarmDescription.setText(ui.alarmDescritpionText);
+            requiredText = ui.displayText;
 
-            String randomThing = randomThingBuilder.toString();
-            passwordText.setText(fixedText + randomThing);
+            if (!ui.deepSleepMode) {
+                passwordInstructions.setText("just press the button to stop");
+                passwordField.setHint("");
+            }
+        });
+    }
+
+    private void handleIntent() {
+        boolean deepSleepMode = getIntent().getBooleanExtra("deepSleepMode", false);
+        long alarmId = getIntent().getLongExtra("alarm_id", -1);
+
+        if (alarmId != -1) {
+            Log.d("infoo", " the alarm id working now  is " + alarmId);
+
+            viewModel.loadAlarm(alarmId);
+        } else {
+            Log.w("infoo", "Missing alarm ID!");
         }
 
-        startRepeatingNotifications(this);
+        viewModel.setDeepSleepMode(deepSleepMode);
+    }
 
+    private void setupStopButton() {
+        findViewById(R.id.stopBtn).setOnClickListener(v -> {
+            String entered = passwordField.getText().toString().trim();
 
-        stopButton.setOnClickListener(v -> {
+            if (viewModel.getUiState().getValue() != null &&
+                    viewModel.getUiState().getValue().deepSleepMode &&
+                    !entered.equals(requiredText)) {
 
-            Log.d("infoo", "the entered text : " + password.getText().toString().trim());
-            Log.d("infoo", "the required text : " + passwordText.getText().toString().trim());
-            if ( (!password.getText().toString().trim().equals(passwordText.getText().toString().trim())) && deepSleepMode )
-            {
-                password.setError("enter that text exactly, all of it");
+                passwordField.setError("enter that text exactly, all of it");
                 return;
             }
-            Intent stopIntent = new Intent(this, AlarmService.class);
-            stopService(stopIntent);
 
-            // Remove the permanent notification
-            NotificationManager notificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notificationManager != null) {
-                notificationManager.cancel(55);
-            }
-
-
-            // Close the app completely
-            finishAffinity(); // Close all activities
-            System.exit(0);   // Force the app process to stop
-
-
-
+            stopService(new Intent(this, AlarmService.class));
+            NotificationHelper.stopNotification(this);
+            finishAffinity();
+            System.exit(0);
         });
-
-
     }
 
     @Override
@@ -163,15 +147,7 @@ public class AlarmActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        isActive= false;
+        isActive = false;
         super.onPause();
     }
-
-
-    @Override
-    protected void onDestroy() {
-
-        super.onDestroy();
-    }
-
 }

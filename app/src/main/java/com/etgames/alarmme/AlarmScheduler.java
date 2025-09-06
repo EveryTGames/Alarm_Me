@@ -23,6 +23,8 @@ public class AlarmScheduler {
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra("deepSleepMode", alarm.isDeepSleepMode);
         intent.putExtra("alarm_id", alarm.id);
+        Log.d("infoo"," the alarm id set is "  + alarm.id);
+
         intent.setAction("com.etgames.trigerAlarm");
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -46,6 +48,7 @@ public class AlarmScheduler {
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra("deepSleepMode", alarm.isDeepSleepMode);
         intent.putExtra("alarm_id", alarm.id);
+        Log.d("infoo"," the alarm id cancel is "  + alarm.id);
         intent.setAction("com.etgames.trigerAlarm");
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(

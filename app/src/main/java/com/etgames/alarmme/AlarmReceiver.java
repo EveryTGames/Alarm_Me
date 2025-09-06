@@ -15,8 +15,9 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         long alarmId = intent.getLongExtra("alarm_id", -1);
         if (alarmId == -1)
-            Log.w("AlarmReceiver", "Missing alarm ID! this should be only when triggering a command alarm");
+            Log.w("infoo", "Missing alarm ID! this should be only when triggering a command alarm");
         else {
+            Log.d("infoo"," the alarm id triggered is "  + alarmId);
 
 
             new Thread(() -> {
@@ -42,6 +43,9 @@ public class AlarmReceiver extends BroadcastReceiver {
         Log.d("infoo", "it got triggered");
         Intent serviceIntent = new Intent(context, AlarmService.class);
         serviceIntent.putExtra("deepSleepMode", intent.getBooleanExtra("deepSleepMode", false));
+        serviceIntent.putExtra("alarm_id", alarmId);
+        Log.d("infoo"," the alarm id sent is "  + alarmId);
+
         Log.d("infoo", "the deepsleepmode in alarm receiver is " + intent.getBooleanExtra("deepSleepMode", false));
 
         ContextCompat.startForegroundService(context, serviceIntent);
