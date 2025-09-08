@@ -86,6 +86,7 @@
         android:nestedScrollingEnabled="true"
         android:singleLine="false"
         android:text=";ldkfjgl;dfmg;ldfmg;dflg zd;flgzd;gz'gdfjgmzd'l gzdj;l jdof;jlzjdhl ndflk; zd ;zfhglkzdh ;klzhdog hz;lk fzdjlzdfj; jzlfkd jzfkd"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/instructionText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

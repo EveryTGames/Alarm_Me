@@ -22,8 +22,25 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class AlarmService extends Service {
+
+    private static boolean currentDeepSleepMode = false;
+    private static long currentAlarmId = 0;
+    private final Queue<Intent> alarmQueue = new LinkedList<>();
+    private boolean isAlarmRunning = false;
+
+    private final Object alarmLock = new Object(); // Lock to prevent race conditions
+
+    private MediaPlayer mediaPlayer;
+    private Handler handler;
+    private Runnable launchStopScreenRunnable;
+    public static SharedPreferences prefs;
+    final int[] lastPosition = {-1}; // used to track MediaPlayer stuck position
+    boolean stopped = false;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -59,28 +76,47 @@ public class AlarmService extends Service {
                 .setContentText("Tap to stop the alarm in the app")
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setContentIntent(pendingIntent) // this makes it clickable
+                .setContentIntent(pendingIntent)
                 .setOngoing(true)
                 .build();
     }
 
-    private MediaPlayer mediaPlayer;
-    private Handler handler;
-    private Runnable launchStopScreenRunnable;
-    public static SharedPreferences prefs;
-
-    final int[] lastPosition = {-1}; // using array to make it effectively final
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        startForeground(1, createNotification());
+        if (intent != null && "STOP_CURRENT_ALARM".equals(intent.getAction())) {
+            Log.w("infoo", "Received STOP_CURRENT_ALARM command");
+            stopAlarm(); // Stop current alarm and advance the queue
+            return START_STICKY;
+        }
 
+        long alarmId = intent.getLongExtra("alarm_id", 0);
+        Log.d("infoo", "AlarmService received alarm ID: " + alarmId);
+
+        synchronized (alarmLock) {
+            if (isAlarmRunning) {
+                Log.w("infoo", "🎈 Alarm already running — queueing new alarm: " + alarmId);
+                alarmQueue.add(intent);
+                return START_STICKY;
+            }
+            isAlarmRunning = true;
+        }
+
+        startAlarmFromIntent(intent);
+        return START_STICKY;
+    }
+
+    private void startAlarmFromIntent(Intent intent) {
+        currentDeepSleepMode = intent.getBooleanExtra("deepSleepMode", false);
+        currentAlarmId = intent.getLongExtra("alarm_id", 0);
+        Log.w("infoo", "🔔 Starting alarm ID: " + currentAlarmId + " (deep sleep: " + currentDeepSleepMode + ")");
+
+        startForeground(1, createNotification());
         prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
         checkVolume();
         startAlarm();
         StartAlarmActivity(intent);
 
-
+        // Handler to keep the activity alive and detect stuck MediaPlayer
         handler = new Handler(Looper.getMainLooper());
         launchStopScreenRunnable = new Runnable() {
             @Override
@@ -90,37 +126,32 @@ public class AlarmService extends Service {
                     StartAlarmActivity(intent);
                 }
 
-
-                // Log.d("infoo", "Position: "+mediaPlayer.getCurrentPosition() +", Duration: " + mediaPlayer.getDuration());
-                //this fixes the problem that the media player stops playing suddenly
-
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                     int currentPosition = mediaPlayer.getCurrentPosition();
-                    Log.d("infoo", "Current: " + currentPosition + ", Last: " + lastPosition[0]);
+                    //Log.d("infoo", "Current: " + currentPosition + ", Last: " + lastPosition[0]);
 
                     if (currentPosition == lastPosition[0]) {
-                        // Stuck detected!
-                        Log.d("infoo", "MediaPlayer is stuck or playback finished unexpectedly,restarting it now");
-
+                        Log.d("infoo", "MediaPlayer is stuck or playback finished unexpectedly, restarting it now");
                         startAlarm();
-
                     } else {
                         lastPosition[0] = currentPosition;
                     }
                 } else {
                     Log.d("infoo", "MediaPlayer is not playing");
                 }
-                // Re-run after 3 seconds if still active
+
                 handler.postDelayed(this, 1500);
             }
         };
         handler.post(launchStopScreenRunnable);
-
-        return START_STICKY;
     }
 
-    void stopAlarm() {
+    /**
+     * Stops the current alarm, removes the handler, and progresses the queue.
+     */
+    public void stopAlarm() {
         stopped = true;
+
         if (mediaPlayer != null) {
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
@@ -132,38 +163,46 @@ public class AlarmService extends Service {
         if (handler != null && launchStopScreenRunnable != null) {
             handler.removeCallbacks(launchStopScreenRunnable);
         }
+
+        synchronized (alarmLock) {
+            isAlarmRunning = false;
+
+            if (!alarmQueue.isEmpty()) {
+                Intent nextIntent = alarmQueue.poll();
+                Log.w("infoo", "Starting next queued alarm");
+
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    synchronized (alarmLock) {
+                        isAlarmRunning = true;
+                    }
+                    startAlarmFromIntent(nextIntent);
+                }, 500);
+            } else {
+
+                Log.w("infoo", "No more queued alarms — stopping service");
+                stopSelf(); // stop the service if nothing is left
+            }
+        }
     }
 
     void checkVolume() {
-        // Skip in debug mode
         if (BuildConfig.DEBUG) {
-            Log.d("AlarmService", "App is in DEBUG mode — skipping volume check");
+           // Log.d("infoo", "DEBUG mode — skipping volume check");
             return;
         }
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         int currentAlarm = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
         int maxAlarm = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
-
-        if (currentAlarm < maxAlarm) {
-            // Not maxed out yet, so set it to max
-            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxAlarm, 0);
-        }
-
+        if (currentAlarm < maxAlarm) audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxAlarm, 0);
 
         int currentNotif = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
         int maxNotif = audioManager.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION);
-
-        if (currentNotif < maxNotif) {
-            audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, maxNotif, 0);
-        }
-
+        if (currentNotif < maxNotif) audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, maxNotif, 0);
     }
 
-    boolean stopped = false;
-
     void startAlarm() {
-        stopAlarmSound(); // Ensure any existing playback is stopped
+        stopAlarmSound();
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.reset();
@@ -175,19 +214,14 @@ public class AlarmService extends Service {
                     )
             );
 
-            // Modern replacement for setAudioStreamType()
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM) // Mark as alarm
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC) // PCM/wav/mp3 content
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build();
 
             mediaPlayer.setAudioAttributes(audioAttributes);
             mediaPlayer.setDataSource(this, currentTone);
-
-            mediaPlayer.setOnCompletionListener((z) -> {
-                Log.d("infoo", "Alarm finished playing");
-                // handle cleanup or next step
-            });
+          //  mediaPlayer.setOnCompletionListener((z) -> Log.d("infoo", "Alarm finished playing"));
             mediaPlayer.setScreenOnWhilePlaying(true);
             mediaPlayer.setLooping(true);
             mediaPlayer.prepare();
@@ -199,11 +233,8 @@ public class AlarmService extends Service {
     }
 
     void stopAlarmSound() {
-
         if (mediaPlayer != null) {
             try {
-
-
                 mediaPlayer.stop();
                 mediaPlayer.release();
             } catch (Exception ignored) {
@@ -213,32 +244,26 @@ public class AlarmService extends Service {
     }
 
     void StartAlarmActivity(Intent intent) {
-
         Intent alarmActivityIntent = new Intent(this, AlarmActivity.class);
-        alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        alarmActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         alarmActivityIntent.putExtra("deepSleepMode", intent.getBooleanExtra("deepSleepMode", false));
-        alarmActivityIntent.putExtra("alarm_id", intent.getLongExtra("alarm_id", -1));
-        Log.d("infoo", "the deepsleepmode in alarm service is " + intent.getBooleanExtra("deepSleepMode", false));
-
+        alarmActivityIntent.putExtra("alarm_id", intent.getLongExtra("alarm_id", 0));
+        Log.d("infoo", "DeepSleepMode: " + intent.getBooleanExtra("deepSleepMode", false));
         startActivity(alarmActivityIntent);
-        Log.d("infoo", "the service started the alarm activity");
-
-
+        Log.d("infoo", "Started AlarmActivity");
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-
-
         return null;
     }
 
-
     @Override
     public void onDestroy() {
-        stopAlarm();
+        stopAlarm(); // Stop current alarm
+        currentDeepSleepMode = false;
+        currentAlarmId = 0;
         super.onDestroy();
     }
 }

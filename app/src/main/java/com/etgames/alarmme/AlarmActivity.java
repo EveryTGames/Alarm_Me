@@ -106,9 +106,9 @@ public class AlarmActivity extends AppCompatActivity {
 
     private void handleIntent() {
         boolean deepSleepMode = getIntent().getBooleanExtra("deepSleepMode", false);
-        long alarmId = getIntent().getLongExtra("alarm_id", -1);
+        long alarmId = getIntent().getLongExtra("alarm_id", 0);
 
-        if (alarmId != -1) {
+        if (alarmId != 0) {
             Log.d("infoo", " the alarm id working now  is " + alarmId);
 
             viewModel.loadAlarm(alarmId);
@@ -126,22 +126,22 @@ public class AlarmActivity extends AppCompatActivity {
             if (viewModel.getUiState().getValue() != null &&
                     viewModel.getUiState().getValue().deepSleepMode &&
                     !entered.equals(requiredText)) {
-
                 passwordField.setError("enter that text exactly, all of it");
                 return;
             }
 
-            //  Stop the alarm-related service ONLY
-            stopService(new Intent(this, AlarmService.class));
+            // Send a "STOP_CURRENT_ALARM" command to the service instead of stopping it
+            Intent stopIntent = new Intent(this, AlarmService.class);
+            stopIntent.setAction("STOP_CURRENT_ALARM");
+            startService(stopIntent);
 
-            //  Remove notification for alarm if needed
+            // Remove notification if needed
             NotificationHelper.stopNotification(this);
 
-            //  Just finish this Activity only
-            finish(); // Only closes this screen, leaves app & services alive
+            // Close only this activity
+            finish();
         });
     }
-
     @Override
     protected void onResume() {
         isActive = true;
