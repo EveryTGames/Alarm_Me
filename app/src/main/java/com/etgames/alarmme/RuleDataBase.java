@@ -7,7 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-@Database(entities = {Rule.class, ToggledApp.class, SelectedRule.class}, version = 1)
+@Database(entities = {Rule.class, ToggledApp.class, SelectedRule.class}, version = 2)
 @TypeConverters({Converters.class})
 public abstract class RuleDataBase extends RoomDatabase {
 
@@ -22,6 +22,7 @@ public abstract class RuleDataBase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder (context.getApplicationContext(),
                                     RuleDataBase.class, "rule_db")
+                            .fallbackToDestructiveMigration(true)
                             .build();
                 }
             }

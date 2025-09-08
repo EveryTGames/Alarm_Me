@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
@@ -30,19 +31,30 @@ public interface RuleDao {
     @Query("SELECT * FROM rules")
     List<Rule> getAllRules();
 
+
+
     // ----- ToggledApp CRUD -----
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertToggledApps(List<ToggledApp> apps);
+
+    @Query("DELETE FROM toggled_apps WHERE ruleId = :ruleId")
+    void deleteToggledAppsByRuleId(long ruleId);
+
+    @Transaction
+    default void replaceToggledAppsForRule(long ruleId, List<ToggledApp> newApps) {
+        deleteToggledAppsByRuleId(ruleId);
+        insertToggledApps(newApps);
+    }
 
     @Delete
     void deleteToggledApps(List<ToggledApp> apps);
 
 
     @Insert
-    void insertToggledApp(ToggledApp app); // ✅ Add single ToggledApp
+    void insertToggledApp(ToggledApp app); //  Add single ToggledApp
 
     @Delete
-    void deleteToggledApp(ToggledApp app); // ✅ Delete single ToggledApp
+    void deleteToggledApp(ToggledApp app); //  Delete single ToggledApp
 
 
     @Query("SELECT EXISTS(SELECT 1 FROM rules WHERE id = :ruleId)")

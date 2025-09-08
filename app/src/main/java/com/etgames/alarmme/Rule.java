@@ -17,4 +17,5 @@ public class Rule {
     public Set<String> preferedContentCommands = new HashSet<>();
     public boolean isEnabled;
     public boolean deepSleepMode;
+    public String ruleDescription;
 }

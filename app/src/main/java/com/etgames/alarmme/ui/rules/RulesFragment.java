@@ -127,7 +127,7 @@ public class RulesFragment extends Fragment {
         });
 
         // Navigate to toggled apps fragment
-        rulesViewModel.openAppList.observe(getViewLifecycleOwner(), unused -> {
+        rulesViewModel.openAppList.observe(getViewLifecycleOwner(), toggledApps -> {
             NavController navController = NavHostFragment.findNavController(this);
             navController.navigate(R.id.action_nav_rules_to_nav_toggledapps);
         });

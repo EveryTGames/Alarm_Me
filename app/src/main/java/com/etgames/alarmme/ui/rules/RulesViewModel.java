@@ -11,32 +11,36 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.etgames.alarmme.Helperr;
 import com.etgames.alarmme.MainActivity;
+import com.etgames.alarmme.R;
 import com.etgames.alarmme.Rule;
 import com.etgames.alarmme.RuleDao;
 import com.etgames.alarmme.RuleWithApps;
 import com.etgames.alarmme.SelectedRule;
 import com.etgames.alarmme.SingleLiveEvent;
-import com.etgames.alarmme.R;
+import com.etgames.alarmme.ToggledApp;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RulesViewModel extends ViewModel {
 
     private final RuleDao ruleDao;
-    public SingleLiveEvent<Void> openAppList = new SingleLiveEvent<>();
     private final MutableLiveData<String> mText = new MutableLiveData<>();
     private final MutableLiveData<List<RuleWithApps>> allRulesLiveData = new MutableLiveData<>();
+    public SingleLiveEvent<List<ToggledApp>> openAppList = new SingleLiveEvent<>();
     public AlertDialog dialogg;
+    public List<ToggledApp> tempToggledApps;
+    public Set<String> tempToggleSet;
+    public String tempRuleDescription;
 
     public RulesViewModel() {
         ruleDao = MainActivity.db.ruleDao();
@@ -54,7 +58,6 @@ public class RulesViewModel extends ViewModel {
         return allRulesLiveData;
     }
 
-
     // ---------------- Load rules from Room ----------------
     public void loadRulesFromDb() {
         new Thread(() -> {
@@ -68,43 +71,6 @@ public class RulesViewModel extends ViewModel {
         }).start();
     }
 
-    // ---------------- CRUD Operations ----------------
-    public void addRule(String ruleName, boolean isEnabled, List<String> toggledApps) {
-        new Thread(() -> {
-            Rule newRule = new Rule();
-            newRule.ruleName = ruleName;
-            newRule.isEnabled = isEnabled;
-            long ruleId = ruleDao.insertRule(newRule);
-
-            List<com.etgames.alarmme.ToggledApp> apps = new ArrayList<>();
-            for (String app : toggledApps) {
-                apps.add(new com.etgames.alarmme.ToggledApp(ruleId, app));
-            }
-            ruleDao.insertToggledApps(apps);
-            loadRulesFromDb();
-        }).start();
-    }
-
-    public void updateRule(Rule rule) {
-        new Thread(() -> {
-            ruleDao.updateRule(rule);
-            loadRulesFromDb();
-        }).start();
-    }
-
-    public void addAppToRule(long ruleId, String appName) {
-        new Thread(() -> {
-            ruleDao.addAppToRule(ruleId, appName);
-            loadRulesFromDb();
-        }).start();
-    }
-
-    public void removeAppFromRule(long ruleId, String appName) {
-        new Thread(() -> {
-            ruleDao.removeAppFromRule(ruleId, appName);
-            loadRulesFromDb();
-        }).start();
-    }
 
     public void deleteRule(long ruleId) {
         new Thread(() -> {
@@ -115,6 +81,52 @@ public class RulesViewModel extends ViewModel {
 
     // ---------------- Full input dialog for Room ----------------
     public void showInputDialog(Context context, Long ruleId, boolean newRule) {
+        tempToggleSet = new HashSet<>();
+        tempToggledApps = new ArrayList<>();
+        tempRuleDescription = null;
+        if (!newRule) {
+
+            new Thread(() -> {
+                MainActivity.db.runInTransaction(() -> {
+
+                    List<String> toggledApps = MainActivity.db.ruleDao().getToggledAppsForRule(ruleId);
+                    tempToggleSet = new HashSet<>(toggledApps);
+                    RuleWithApps _rulewithApps = MainActivity.db.ruleDao().getRuleWithApps(ruleId);
+                    if (_rulewithApps != null && _rulewithApps.toggledApps != null) {
+                        tempToggledApps = _rulewithApps.toggledApps;
+                    } else {
+                        tempToggledApps = new ArrayList<>();
+                    }
+                });
+
+            }).start();
+        }
+
+        new Thread(() -> {
+
+
+                if (newRule) {
+                    long lastRuleId;
+
+                    //this is a workaround for knowing the next id that the roomdatabase will assign, since no API for that
+                    Rule dummy = new Rule();
+                    long insertedId = ruleDao.insertRule(dummy);
+                    dummy.id = insertedId;
+                    ruleDao.deleteRule(dummy);
+
+                    lastRuleId = insertedId + 1;
+
+                    MainActivity.db.selectedRuleDao().setSelectedRule(new SelectedRule(1, lastRuleId));
+
+                    // saveRuleToDatabase(lastRuleId, editRuleName, isAndSwitch, isDeepSleepSwitch, senderNameTexts, commandsTexts, ruleDao);
+
+                    Log.d("infoo", "Passed ruleId: " + lastRuleId);
+                }
+
+
+        }).start();
+
+
         View dialogView = LayoutInflater.from(context).inflate(R.layout.details_dialog, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(dialogView);
@@ -185,28 +197,16 @@ public class RulesViewModel extends ViewModel {
         btnOpenAppList.setEnabled(false); // initially disabled
 
         btnOpenAppList.setOnClickListener(v -> {
+
             this.dialogg = dialog; // save reference
             dialog.hide();          // hide current dialog
-            new Thread(() -> {
-                long lastRuleId;
-                if (newRule) {
 
-                    lastRuleId = MainActivity.db.ruleDao().getLastRuleId() + 1;
-                } else {
-                    lastRuleId = MainActivity.db.selectedRuleDao().getSelectedRuleId();
-
-                }
-
-                if (lastRuleId == 0) {
-                    lastRuleId = 1;
-                    Log.e("infoo","i changed it from zero to 1, in RulesViewModel");
-                }
-
-                MainActivity.db.selectedRuleDao().setSelectedRule(new SelectedRule(1, lastRuleId));
-                saveRuleToDatabase(lastRuleId, editRuleName, isAndSwitch, isDeepSleepSwitch, senderNameTexts, commandsTexts, ruleDao);
-                Log.d("RULE_CLICK", "Passed ruleId: " + lastRuleId);
-            }).start();
-            openAppList.call();     // trigger the LiveData event
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            openAppList.setValue(tempToggledApps);// trigger the LiveData event
         });
 
 // Enable button if MainActivity is loaded
@@ -216,7 +216,9 @@ public class RulesViewModel extends ViewModel {
 
             new Thread(() -> {
                 long _ruleId = MainActivity.db.selectedRuleDao().getSelectedRuleId();
-                saveRuleToDatabase(_ruleId, editRuleName, isAndSwitch, isDeepSleepSwitch, senderNameTexts, commandsTexts, ruleDao);
+
+                saveRuleToDatabase(_ruleId, editRuleName, isAndSwitch, isDeepSleepSwitch, senderNameTexts, commandsTexts, ruleDao);//this ssaved the toggled apps too
+
 
             }).start();
             // Dismiss dialog on UI thread
@@ -226,6 +228,9 @@ public class RulesViewModel extends ViewModel {
         dialog.show();
     }
 
+    /**
+     * this saves the toggled apps too
+     */
     private void saveRuleToDatabase(long ruleId, EditText editRuleName,
                                     com.google.android.material.materialswitch.MaterialSwitch isAndSwitch, com.google.android.material.materialswitch.MaterialSwitch isDeepSleepSwitch,
                                     List<TextInputLayout> senderNameTexts, List<TextInputLayout> commandsTexts,
@@ -271,14 +276,24 @@ public class RulesViewModel extends ViewModel {
                     finalRuleToSave.deepSleepMode = deepSleep;
                     finalRuleToSave.preferedSenderName = new HashSet<>(senderTexts);
                     finalRuleToSave.preferedContentCommands = new HashSet<>(commandTexts);
+                    finalRuleToSave.ruleDescription = tempRuleDescription;
 
                     if (newRule) {
-                        MainActivity.db.selectedRuleDao().setSelectedRule(new SelectedRule(1, ruleDao.insertRule(finalRuleToSave)));
+                        MainActivity.db.runInTransaction(() -> {
+                            long insertedID = MainActivity.db.ruleDao().insertRule(finalRuleToSave);
+                            MainActivity.db.selectedRuleDao().setSelectedRule(new SelectedRule(1, insertedID));
+
+                            MainActivity.db.ruleDao().replaceToggledAppsForRule(insertedID, tempToggledApps);
+                        });
                     } else {
                         ruleDao.updateRule(finalRuleToSave);
+                        MainActivity.db.ruleDao().replaceToggledAppsForRule(ruleId, tempToggledApps);
                     }
 
-                    loadRulesFromDb(); // Assuming this is safe to call from background
+                    loadRulesFromDb();
+                    ///TODO solve the problem that the toggled app list be auto saved wihtout user confermation even if pressed cancel
+                    //  and also rememebr that u dissabled the save of the rule when pressing the open app list button
+                    ///    and
                 }).start();
             });
 

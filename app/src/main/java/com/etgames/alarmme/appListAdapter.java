@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,15 +18,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHolder> {
-
-    private Context context;
-    private long currentRuleId; // The rule currently being edited
-    private Set<String> toggleSet = new HashSet<>(); // apps toggled for current rule
 
     // DiffUtil callback for list updates
     static final DiffUtil.ItemCallback<app_info> DIFF_CALLBACK = new DiffUtil.ItemCallback<app_info>() {
@@ -39,25 +37,26 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
             return oldItem.isToggled == newItem.isToggled;
         }
     };
+    private final ToggledAppsCallback callback;
+    private Context context;
+    private long currentRuleId; // The rule currently being edited
+    private Set<String> toggleSet = new HashSet<>(); // apps toggled for current rule
+    private List<ToggledApp> tempToggledApps = new ArrayList<>();
 
-    public appListAdapter(Context _context, long ruleId) {
+    public appListAdapter(Context _context, long ruleId,List<ToggledApp> _tempToggledApps, ToggledAppsCallback callBack) {
         super(DIFF_CALLBACK);
         context = _context;
         currentRuleId = ruleId;
-        loadToggledAppsFromDb();
+        tempToggledApps=_tempToggledApps;
+
+        this.callback = callBack;
+       // loadToggledAppsFromDb();
     }
 
     private void loadToggledAppsFromDb() {
-        new Thread(() -> {
-            List<String> toggledApps = MainActivity.db.ruleDao().getToggledAppsForRule(currentRuleId);
-            toggleSet = new HashSet<>(toggledApps);
-            notifyDataSetChanged();
-        }).start();
-    }
 
-    public void updateCurrentRule(long ruleId) {
-        currentRuleId = ruleId;
-        loadToggledAppsFromDb();
+
+        new Handler(Looper.getMainLooper()).post(() -> notifyDataSetChanged());
     }
 
     @NonNull
@@ -75,6 +74,10 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
     public void setToggleState(Set<String> toggleSet) {
         this.toggleSet = toggleSet != null ? toggleSet : new HashSet<>();
         notifyDataSetChanged();
+    }
+
+    public interface ToggledAppsCallback {
+        void onToggledAppsChanged(List<ToggledApp> toggledApps, Set<String> toggledSet);
     }
 
     class viewHolder extends RecyclerView.ViewHolder {
@@ -104,20 +107,28 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
                 itemData.isToggled = isChecked;
 
                 new Thread(() -> {
-                    currentRuleId = MainActivity.db.selectedRuleDao().getSelectedRuleId();
-                    if (isChecked) {
-                        // Insert ToggledApp safely
-                        MainActivity.db.ruleDao().insertToggledApp(new ToggledApp(currentRuleId, itemData.packageName));
-                        toggleSet.add(itemData.packageName);
-                    } else {
-                        MainActivity.db.ruleDao().deleteToggledApp(new ToggledApp(currentRuleId, itemData.packageName));
-                        toggleSet.remove(itemData.packageName);
-                    }
 
+                    MainActivity.db.runInTransaction(() -> {
+                        currentRuleId = MainActivity.db.selectedRuleDao().getSelectedRuleId();
+                        if (isChecked) {
+                            // Insert ToggledApp safely
+                            tempToggledApps.add(new ToggledApp(currentRuleId, itemData.packageName));
+                            toggleSet.add(itemData.packageName);
+                        } else {
+                          boolean result =  tempToggledApps.remove(new ToggledApp(currentRuleId, itemData.packageName));
+                            Log.d("infoo","removing from the toglled apps is " + result);
+                            toggleSet.remove(itemData.packageName);
+                        }
+                    });
                     // Notify UI on main thread
                     new Handler(Looper.getMainLooper()).post(() -> notifyItemChanged(getAdapterPosition()));
                 }).start();
+
+                if (callback != null) {
+                    callback.onToggledAppsChanged(tempToggledApps,toggleSet);
+                }
             });
+
         }
     }
 }

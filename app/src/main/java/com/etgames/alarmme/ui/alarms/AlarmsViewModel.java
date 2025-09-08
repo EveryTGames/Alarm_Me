@@ -2,6 +2,7 @@ package com.etgames.alarmme.ui.alarms;
 
 import android.app.Application;
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import com.etgames.alarmme.AlarmScheduler;
 import com.etgames.alarmme.MainActivity;
 import com.etgames.alarmme.R;
 import com.etgames.alarmme.SingleLiveEvent;
+import com.mrudultora.colorpicker.ColorPickerPopUp;
 
 import java.io.File;
 import java.util.Calendar;
@@ -219,6 +221,28 @@ public class AlarmsViewModel extends AndroidViewModel {
             deleteImageFileIfExists(tempPhotoUri);
 
             dialog.dismiss();
+
+        });
+        dialogView.findViewById(R.id.btnChangeBackGroundColor).setOnClickListener(v -> {
+
+            ColorPickerPopUp colorPickerPopUp = new ColorPickerPopUp(context);    // Pass the context.
+            colorPickerPopUp.setShowAlpha(false)            // By default show alpha is true.
+                    .setDefaultColor(currentAlarm.backGroundColor)            // By default red color is set.
+                    .setDialogTitle("Pick a Color")
+                    .setOnPickColorListener(new ColorPickerPopUp.OnPickColorListener() {
+                        @Override
+                        public void onColorPicked(int color) {
+                            // handle the use of color
+                            currentAlarm.backGroundColor = color;
+                        }
+
+                        @Override
+                        public void onCancel() {
+                            colorPickerPopUp.dismissDialog();    // Dismiss the dialog.
+                        }
+                    })
+                    .show();
+
 
         });
 

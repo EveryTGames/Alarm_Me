@@ -3,6 +3,7 @@ package com.etgames.alarmme;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -36,7 +37,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
 
         @Override
         public boolean areContentsTheSame(@NonNull Alarm oldItem, @NonNull Alarm newItem) {
-            return oldItem.Description.equals( newItem.Description) && oldItem.Title.equals( newItem.Title) && oldItem.isEnabled == newItem.isEnabled && oldItem.isDeepSleepMode == newItem.isDeepSleepMode;
+            return oldItem.Description.equals( newItem.Description) && oldItem.Title.equals( newItem.Title) && oldItem.isEnabled == newItem.isEnabled && oldItem.isDeepSleepMode == newItem.isDeepSleepMode && oldItem.backGroundColor == newItem.backGroundColor;
         }
     };
 
@@ -57,6 +58,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
         TextView alarmTitle;
         TextView alarmDescription;
         TextView ruleDeepSleepMode;
+        ImageView  colorView;
         com.google.android.material.materialswitch.MaterialSwitch alarmSwitch;
 
         public AlarmsViewHolder(@NonNull View itemView) {
@@ -65,6 +67,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
             alarmSwitch = itemView.findViewById(R.id.switch1);
             alarmDescription = itemView.findViewById(R.id.listItemDetails);
             ruleDeepSleepMode = itemView.findViewById(R.id.listItemDeepSleepOption);
+            colorView = itemView.findViewById(R.id.colorView);
 
         }
 
@@ -97,11 +100,13 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
             });
 
             ruleDeepSleepMode.setText(alarm.isDeepSleepMode?"Deep Sleep Mode is Enabled":"" );
-
+            colorView.setVisibility(View.VISIBLE);
+            colorView.setBackgroundColor(alarm.backGroundColor);
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onAlarmClick(alarm);
             });
+
 
         }
     }

@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.unity.ads)
 
+    implementation(libs.colorpicker)
 
 
     // If this project only uses Java source, use the Java annotationProcessor
@@ -59,4 +60,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+
+
 }

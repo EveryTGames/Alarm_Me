@@ -132,10 +132,14 @@ public class AlarmActivity extends AppCompatActivity {
                 return;
             }
 
+            //  Stop the alarm-related service ONLY
             stopService(new Intent(this, AlarmService.class));
+
+            //  Remove notification for alarm if needed
             NotificationHelper.stopNotification(this);
-            finishAffinity();
-            System.exit(0);
+
+            //  Just finish this Activity only
+            finish(); // Only closes this screen, leaves app & services alive
         });
     }
 

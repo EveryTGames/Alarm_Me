@@ -1,5 +1,6 @@
 [versions]
 agp = "8.5.2"
+colorpickerVersion = "1.2.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
@@ -15,6 +16,7 @@ roomRuntimeJvm = "2.7.2"
 unityAds = "4.7.0"
 
 [libraries]
+colorpicker = { module = "com.github.mrudultora:Colorpicker", version.ref = "colorpickerVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

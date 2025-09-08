@@ -76,4 +76,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ImageView
+        android:id="@+id/colorView"
+        android:layout_width="373dp"
+        android:layout_height="6dp"
+        android:background="#000000"
+        android:backgroundTint="@color/black"
+        android:backgroundTintMode="add"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/listItemDeepSleepOption" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

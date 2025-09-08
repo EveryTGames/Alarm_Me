@@ -61,7 +61,7 @@ public class RuleAdapter extends RecyclerView.Adapter<RuleAdapter.RuleViewHolder
 
         @Override
         public boolean areContentsTheSame(@NonNull Rule oldItem, @NonNull Rule newItem) {
-            return Objects.equals(oldItem.ruleName, newItem.ruleName) && oldItem.deepSleepMode== newItem.deepSleepMode && oldItem.isEnabled == newItem.isEnabled ;
+            return Objects.equals(oldItem.ruleName, newItem.ruleName) && oldItem.deepSleepMode== newItem.deepSleepMode && oldItem.isEnabled == newItem.isEnabled && Objects.equals(oldItem.ruleDescription, newItem.ruleDescription);
         }
     };
 
@@ -97,30 +97,14 @@ public class RuleAdapter extends RecyclerView.Adapter<RuleAdapter.RuleViewHolder
         }
 
         public void bind(RuleWithApps ruleWithApps) {
+
             Rule rule = ruleWithApps.rule;
             boolean isToggled = toggledRuleIds.contains(rule.id);
 
             ruleTitle.setText((rule.ruleName == null || rule.ruleName.isEmpty()) ? "Rule #" + rule.id : rule.ruleName);
 
-            // Display toggled apps names
-            PackageManager packageManager = context.getPackageManager();
-            StringBuilder appNamesBuilder = new StringBuilder();
 
-            for (ToggledApp packageName : ruleWithApps.toggledApps) {
-                try {
-                    ApplicationInfo appInfo = packageManager.getApplicationInfo(packageName.appName, 0);
-                    String appName = packageManager.getApplicationLabel(appInfo).toString();
-                    appNamesBuilder.append(appName).append(", ");
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-            boolean empty = true;
-            if (appNamesBuilder.length() > 0) {
-                appNamesBuilder.setLength(appNamesBuilder.length() - 2); // remove last comma
-                empty = false;
-            }
-            if(empty)
+            if(rule.ruleDescription==null|| rule.ruleDescription.isEmpty())
             {
                 ruleDescription.setText("No Apps selected, the rule will not work");
 
@@ -129,7 +113,7 @@ public class RuleAdapter extends RecyclerView.Adapter<RuleAdapter.RuleViewHolder
             else
             {
 
-                ruleDescription.setText(appNamesBuilder.toString());
+                ruleDescription.setText(rule.ruleDescription);
                 ruleDescription.setTextColor( ContextCompat.getColor(context, R.color.teal_200));
 
 

@@ -5,8 +5,9 @@
     android:id="@+id/mainBackGround"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0037FF"
-    android:backgroundTint="#FFD500"
+    android:background="#000000"
+    android:backgroundTint="#00FF0000"
+    android:backgroundTintMode="src_over"
     android:outlineAmbientShadowColor="#FF0000"
     android:outlineSpotShadowColor="#FF0000">
 

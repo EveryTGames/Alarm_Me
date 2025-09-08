@@ -24,4 +24,23 @@ public class ToggledApp {
         this.ruleId = ruleId;
         this.appName = appName;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ToggledApp that = (ToggledApp) o;
+
+        return ruleId == that.ruleId &&
+                appName != null && appName.equals(that.appName);
+    }
+
+    @Override
+    public int hashCode() {
+        // Still safe, even if you're not using it — ensures correctness
+        int result = Long.hashCode(ruleId);
+        result = 31 * result + (appName != null ? appName.hashCode() : 0);
+        return result;
+    }
 }
