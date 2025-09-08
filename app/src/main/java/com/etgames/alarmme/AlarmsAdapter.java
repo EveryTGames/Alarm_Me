@@ -1,5 +1,8 @@
 package com.etgames.alarmme;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +15,7 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -37,7 +41,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
 
         @Override
         public boolean areContentsTheSame(@NonNull Alarm oldItem, @NonNull Alarm newItem) {
-            return oldItem.Description.equals( newItem.Description) && oldItem.Title.equals( newItem.Title) && oldItem.isEnabled == newItem.isEnabled && oldItem.isDeepSleepMode == newItem.isDeepSleepMode && oldItem.backGroundColor == newItem.backGroundColor;
+            return oldItem.Description.equals( newItem.Description) && oldItem.Title.equals( newItem.Title) && oldItem.isEnabled == newItem.isEnabled && oldItem.isDeepSleepMode == newItem.isDeepSleepMode && oldItem.backGroundColor == newItem.backGroundColor && Objects.equals(oldItem.photoUri, newItem.photoUri);
         }
     };
 
@@ -59,6 +63,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
         TextView alarmDescription;
         TextView ruleDeepSleepMode;
         ImageView  colorView;
+        ImageView alarmPhoto;
         com.google.android.material.materialswitch.MaterialSwitch alarmSwitch;
 
         public AlarmsViewHolder(@NonNull View itemView) {
@@ -66,6 +71,7 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
             alarmTitle = itemView.findViewById(R.id.listItemTitle);
             alarmSwitch = itemView.findViewById(R.id.switch1);
             alarmDescription = itemView.findViewById(R.id.listItemDetails);
+            alarmPhoto = itemView.findViewById(R.id.appIcon);
             ruleDeepSleepMode = itemView.findViewById(R.id.listItemDeepSleepOption);
             colorView = itemView.findViewById(R.id.colorView);
 
@@ -73,29 +79,35 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
 
 
         public void bind(Alarm alarm) {
-            boolean isToggled = toggleSet.contains(Long.toString( alarm.id));
+            boolean isToggled = toggleSet.contains( alarm.id);
             alarmTitle.setText(alarm.Title);
             alarmDescription.setText(alarm.Description);
+            if (alarm.photoUri != null) {
+                Bitmap bitmap = BitmapFactory.decodeFile(alarm.photoUri);
+                alarmPhoto.setImageBitmap(bitmap);
+                alarmPhoto.setVisibility(View.VISIBLE);
+            } else {
+                alarmPhoto.setImageResource(0);
+                alarmPhoto.setVisibility(View.GONE);
+               Log.w("infoo", "No image URI to load");
+            }
             alarmSwitch.setOnCheckedChangeListener(null);
             alarmSwitch.setChecked(isToggled);
             alarmSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
 
                 if (isChecked) {
-                    toggleSet.add(Long.toString(alarm.id));
-                    MainActivity.prefs.edit().putStringSet("toggledAlarms", toggleSet).apply();
+                    toggleSet.add(alarm.id);
+
 
 
                 } else {
-                    toggleSet.remove(Long.toString(alarm.id));
+                    toggleSet.remove(alarm.id);
 
-                    MainActivity.prefs.edit().putStringSet("toggledAlarms", toggleSet).apply();
-                    //u will also make the logivc for saving the texts like the prefered command and prefered name
-                    // u will use shared preference normally
-                    // key: "package name"    value : "<preferered sender name><"or"  or "and" to determine if the user wants the sender name and one of the content messages to match in order to trigger the alarm, or just want any one of them>:#94710341#:<prefered content message 1>:#94710341#:<prefered content message 2 ... and so on>"
-                }
+
+               }
 
                 if (listener != null) {
-                    listener.onAlarmToggle(alarm, isChecked); // 🧠 Notify ViewModel
+                    listener.onAlarmToggle(alarm, isChecked); //  Notify ViewModel
                 }
             });
 
@@ -112,9 +124,9 @@ public class AlarmsAdapter extends ListAdapter<Alarm, AlarmsAdapter.AlarmsViewHo
     }
 
 
-    private Set<String> toggleSet = new HashSet<>();
+    private Set<Long> toggleSet = new HashSet<>();
 
-    public void setToggleState(Set<String> toggleSet) {
+    public void setToggleState(Set<Long> toggleSet) {
         this.toggleSet = toggleSet != null ? toggleSet : new HashSet<>();
         notifyDataSetChanged(); // refresh all views with new toggle state
     }

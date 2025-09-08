@@ -2,6 +2,7 @@ package com.etgames.alarmme;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.opengl.Visibility;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -99,7 +100,16 @@ public class appListAdapter extends ListAdapter<app_info, appListAdapter.viewHol
             boolean isToggled = _adapter.toggleSet.contains(itemData.packageName);
             itemTitle.setText(itemData.itemTitle);
             Drawable icon = itemData.appIcon;
-            if (icon != null) appIcon.setImageDrawable(icon);
+            if (icon != null)
+            {
+                appIcon.setImageDrawable(icon);
+                appIcon.setVisibility(View.VISIBLE);
+            }
+            else
+            {
+                appIcon.setVisibility(View.GONE);
+
+            }
 
             switchToggle.setOnCheckedChangeListener(null);
             switchToggle.setChecked(isToggled);

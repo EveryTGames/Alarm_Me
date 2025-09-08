@@ -15,14 +15,17 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         long alarmId = intent.getLongExtra("alarm_id", -1);
         if (alarmId == -1)
+        {
+
             Log.w("infoo", "Missing alarm ID! this should be only when triggering a command alarm");
+        }
         else {
             Log.d("infoo"," the alarm id triggered is "  + alarmId);
 
 
             new Thread(() -> {
 
-                AlarmDataBase db = AlarmDataBase.getDatabase(context);
+                AlarmDataBase db = AlarmDataBase.getDatabase(context.getApplicationContext());
                 AlarmDao alarmDao = db.alarmDao();
                 Alarm alarm = alarmDao.getAlarmByIdSync(alarmId);
 
@@ -32,6 +35,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                     } else {
                         alarm.isEnabled =false;
                         alarmDao.update(alarm);
+
 
                     }
 

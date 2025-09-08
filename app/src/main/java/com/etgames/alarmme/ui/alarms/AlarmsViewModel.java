@@ -2,7 +2,6 @@ package com.etgames.alarmme.ui.alarms;
 
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Color;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -29,6 +28,7 @@ import com.etgames.alarmme.SingleLiveEvent;
 import com.mrudultora.colorpicker.ColorPickerPopUp;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.Set;
 public class AlarmsViewModel extends AndroidViewModel {
 
     private final AlarmDao alarmDao;
-    private final MediatorLiveData<Pair<List<Alarm>, HashSet<String>>> alarmsLiveData = new MediatorLiveData<>();
+    private final MediatorLiveData<Pair<List<Alarm>, HashSet<Long>>> alarmsLiveData = new MediatorLiveData<>();
     private final MutableLiveData<String> mText = new MutableLiveData<>();
     public PhotoPickListener photoPickListener; // Fragment sets this
     public SingleLiveEvent<Alarm> startScheduleAlarm = new SingleLiveEvent<>();
@@ -59,8 +59,14 @@ public class AlarmsViewModel extends AndroidViewModel {
 
         mText.setValue("no alarms added, add one by clicking on the \"+\" symbol.");
         alarmsLiveData.addSource(dbLiveData, alarms -> {
-            Set<String> toggledSet = MainActivity.prefs.getStringSet("toggledAlarms", new HashSet<>());
-            alarmsLiveData.setValue(new Pair<>(alarms, new HashSet<>(toggledSet)));
+           // Log.d("infoo", "LiveData triggered! Size = " + (alarms != null ? alarms.size() : "null"));
+
+            new Thread(() -> {
+                Set<Long> toggledSet = new HashSet<>(alarmDao.getAllEnabledAlarmIds());
+                alarmsLiveData.postValue(new Pair<>(new ArrayList<>( alarms), new HashSet<Long>(toggledSet)));
+            }).start();
+          //  Log.d("infoo", "getAllAlarms() LiveData: " + System.identityHashCode(dbLiveData));
+
 
             if (alarms == null || alarms.isEmpty()) {
                 mText.setValue("no alarms added, add one by clicking on the \"+\" symbol.");
@@ -87,7 +93,7 @@ public class AlarmsViewModel extends AndroidViewModel {
         return mText;
     }
 
-    public LiveData<Pair<List<Alarm>, HashSet<String>>> getAlarmsLiveData() {
+    public LiveData<Pair<List<Alarm>, HashSet<Long>>> getAlarmsLiveData() {
         return alarmsLiveData;
     }
 
@@ -104,9 +110,7 @@ public class AlarmsViewModel extends AndroidViewModel {
                 callback.onAlarmInserted(newAlarm); // Pass back full Alarm object
             }
 
-            Set<String> updatedToggledSet = new HashSet<>(MainActivity.prefs.getStringSet("toggledAlarms", new HashSet<>()));
-            updatedToggledSet.add(Long.toString(result));
-            MainActivity.prefs.edit().putStringSet("toggledAlarms", updatedToggledSet).apply();
+
             Log.d("infoo", "toggled alarms updated with inserted ID: " + result);
         }).start();
     }
@@ -114,7 +118,6 @@ public class AlarmsViewModel extends AndroidViewModel {
     public void updateAlarm(Alarm alarm, AlarmInsertedCallback callback) {
         new Thread(() -> {
             int result = alarmDao.update(alarm);
-            ///ToDO at any used alarm.id add a condition that will show a warning log if id == 0, it might give a bug, it shouldnt be zero mostly
             Alarm newAlarm = alarmDao.getAlarmByIdSync(alarm.id);
 
             if (callback != null) {
@@ -127,9 +130,7 @@ public class AlarmsViewModel extends AndroidViewModel {
 
 
     public void deleteAlarm(Alarm alarm) {
-        Set<String> updatedToggledSet = new HashSet<>(MainActivity.prefs.getStringSet("toggledAlarms", new HashSet<>()));
-        updatedToggledSet.remove(Long.toString(alarm.id));
-        MainActivity.prefs.edit().putStringSet("toggledAlarms", updatedToggledSet).apply();
+
         new Thread(() -> alarmDao.delete(alarm)).start();
     }
 

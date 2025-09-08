@@ -88,8 +88,7 @@ public class AlarmActivity extends AppCompatActivity {
                 image.setImageBitmap(bitmap);
             } else {
                 image.setImageResource(0);
-                //TODO u will add some text that can be changed for each alarm that be displayed with the alarm, diffrent tha the password instructions and hint
-                //TODO add all of these things to the create alarm dialogue so that the user can create or edit them
+
                 Log.w("infoo", "No image URI to load");
             }
             background.setBackgroundColor(ui.backgroundColor);

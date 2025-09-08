@@ -185,6 +185,7 @@ public class RulesViewModel extends ViewModel {
                     for (String commandMessage : finalCurrentRule.preferedContentCommands) {
                         commandHelper.addOne(context, commandsTexts, commandContainer, "Notification Content", commandMessage);
                     }
+                    tempRuleDescription = finalCurrentRule.ruleDescription;
                 } else {
                     senderHelper.addOne(context, senderNameTexts, senderContainer, "Notification Name", null);
                     commandHelper.addOne(context, commandsTexts, commandContainer, "Notification Content", null);

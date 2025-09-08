@@ -175,9 +175,11 @@ public class AlarmsFragment extends Fragment {
 
 
         alarmsViewModel.getAlarmsLiveData().observe(getViewLifecycleOwner(), alarms -> {
+           // Log.d("infoo", "Observed new alarms: " + alarms.first.size());
             alarmAdapter.setToggleState(alarms.second);
             alarmAdapter.submitList(alarms.first);
         });
+       // Log.d("infoo", "Observer registered on: " + System.identityHashCode(alarmsViewModel.getAlarmsLiveData()));
 
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));

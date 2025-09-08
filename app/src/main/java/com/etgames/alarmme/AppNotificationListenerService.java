@@ -82,7 +82,7 @@ public class AppNotificationListenerService extends android.service.notification
         // Start monitoring to auto-recover notification if swiped
         startNotificationMonitor();
 
-        db = RuleDataBase.getDatabase(this);
+        db = RuleDataBase.getDatabase(getApplicationContext());
     }
 
     public void AlarmNotifier(Context context) {

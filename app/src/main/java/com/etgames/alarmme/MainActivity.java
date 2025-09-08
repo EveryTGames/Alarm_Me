@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
 
-        db =  RuleDataBase.getDatabase(this);
+        db =  RuleDataBase.getDatabase(getApplicationContext());
         //prefs.edit().putBoolean("adsOn",true).apply();
         if (prefs.getBoolean("adsOn", false)) {
 
@@ -139,13 +139,13 @@ public class MainActivity extends AppCompatActivity {
         prefs.edit().putBoolean("isOn", true).apply();
 
         new Thread(() -> {
-            AlarmDataBase db = AlarmDataBase.getDatabase(MainActivity.this);
+            AlarmDataBase db = AlarmDataBase.getDatabase(MainActivity.this.getApplicationContext());
             List<Long> enabledAlarms = db.alarmDao().getAllEnabledAlarmIds();
             Set<String> idSet = new HashSet<>();
             for (Long id : enabledAlarms) {
                 idSet.add(String.valueOf(id));
             }
-            prefs.edit().putStringSet("toggledAlarms", new HashSet<>(idSet)).apply();
+
         }).start();
 
         Log.d("infoo", prefs.getString("succesfullyRegisteredAlarmsAfterBoot", "not there :)"));

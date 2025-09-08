@@ -1,12 +1,13 @@
 package com.etgames.alarmme;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {Alarm.class}, version = 2)
+@Database(entities = {Alarm.class}, version = 4)
 public abstract class AlarmDataBase extends RoomDatabase {
 
     private static volatile AlarmDataBase INSTANCE;
@@ -23,6 +24,9 @@ public abstract class AlarmDataBase extends RoomDatabase {
                             .build();
                 }
             }
+            Log.d("infoo", "Created AlarmDatabase instance: " + System.identityHashCode(INSTANCE));
+        } else {
+            Log.d("infoo", "Reused AlarmDatabase instance: " + System.identityHashCode(INSTANCE));
         }
         return INSTANCE;
     }
