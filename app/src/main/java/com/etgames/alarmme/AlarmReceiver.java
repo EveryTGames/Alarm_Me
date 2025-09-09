@@ -35,7 +35,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
                 if (alarm != null) {
                     if (alarm.isRepeating) {
-                        AlarmScheduler.scheduleAlarm(context, alarm);
+                        AlarmScheduler.scheduleAlarm(context, alarm,true);
                     } else {
                         alarm.isEnabled = false;
                         alarmDao.update(alarm);

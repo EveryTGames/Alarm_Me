@@ -27,19 +27,18 @@ import java.util.Queue;
 
 public class AlarmService extends Service {
 
+    public static SharedPreferences prefs;
     private static boolean currentDeepSleepMode = false;
     private static long currentAlarmId = 0;
+    final int[] lastPosition = {-1}; // used to track MediaPlayer stuck position
     private final Queue<Intent> alarmQueue = new LinkedList<>();
-    private boolean isAlarmRunning = false;
-
     private final Object alarmLock = new Object(); // Lock to prevent race conditions
-
+    boolean stopped = false;
+    int maxVolume;
+    private boolean isAlarmRunning = false;
     private MediaPlayer mediaPlayer;
     private Handler handler;
     private Runnable launchStopScreenRunnable;
-    public static SharedPreferences prefs;
-    final int[] lastPosition = {-1}; // used to track MediaPlayer stuck position
-    boolean stopped = false;
 
     @Override
     public void onCreate() {
@@ -112,6 +111,7 @@ public class AlarmService extends Service {
 
         startForeground(1, createNotification());
         prefs = getSharedPreferences("ALARM_APP", MODE_PRIVATE);
+        maxVolume = prefs.getInt("max_volume", 100);
         checkVolume();
         startAlarm();
         StartAlarmActivity(intent);
@@ -187,18 +187,22 @@ public class AlarmService extends Service {
 
     void checkVolume() {
         if (BuildConfig.DEBUG) {
-           // Log.d("infoo", "DEBUG mode — skipping volume check");
-            return;
+            // Log.d("infoo", "DEBUG mode — skipping volume check");
+           // return;
         }
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         int currentAlarm = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
         int maxAlarm = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
-        if (currentAlarm < maxAlarm) audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxAlarm, 0);
+        int percentageMax = (int) ( maxAlarm * ( maxVolume /100.0f));
+        Log.d("infoo","the aarm volume is " + percentageMax + " out of "+ maxAlarm);
+        if (currentAlarm != percentageMax)
+            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, percentageMax, 0);
 
         int currentNotif = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
         int maxNotif = audioManager.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION);
-        if (currentNotif < maxNotif) audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, maxNotif, 0);
+        if (currentNotif < maxNotif)
+            audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, maxNotif, 0);
     }
 
     void startAlarm() {
@@ -221,7 +225,7 @@ public class AlarmService extends Service {
 
             mediaPlayer.setAudioAttributes(audioAttributes);
             mediaPlayer.setDataSource(this, currentTone);
-          //  mediaPlayer.setOnCompletionListener((z) -> Log.d("infoo", "Alarm finished playing"));
+            //  mediaPlayer.setOnCompletionListener((z) -> Log.d("infoo", "Alarm finished playing"));
             mediaPlayer.setScreenOnWhilePlaying(true);
             mediaPlayer.setLooping(true);
             mediaPlayer.prepare();

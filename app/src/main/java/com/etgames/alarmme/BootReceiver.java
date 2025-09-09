@@ -30,7 +30,7 @@ public class BootReceiver extends BroadcastReceiver {
                     StringBuilder enteereddata = new StringBuilder();
                     List<Alarm> alarms = db.alarmDao().getAllEnabledAlarms();
                     for (Alarm alarm : alarms) {
-                        AlarmScheduler.scheduleAlarm(context, alarm);
+                        AlarmScheduler.scheduleAlarm(context, alarm,false);
                         enteereddata.append(alarm.id).append(" ");
                     }
                     prefs.edit().putString("succesfullyRegisteredAlarmsAfterBoot", enteereddata.toString()).apply();

@@ -9,14 +9,14 @@ import android.util.Log;
 import java.util.Calendar;
 
 public class AlarmScheduler {
-    public static void scheduleAlarm(Context context, Alarm alarm) {
+    public static void scheduleAlarm(Context context, Alarm alarm,boolean isTomorrow) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, alarm.hour);
         calendar.set(Calendar.MINUTE, alarm.minute);
         calendar.set(Calendar.SECOND, 0);
 
-        if (calendar.before(Calendar.getInstance())) {
+        if (calendar.before(Calendar.getInstance()) || isTomorrow) {
             calendar.add(Calendar.DAY_OF_MONTH, 1);
         }
 
@@ -53,7 +53,7 @@ public class AlarmScheduler {
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,
-                (int) alarm.id, // ✅ must be same as the one used when setting
+                (int) alarm.id, //  must be same as the one used when setting
                 intent,
                 PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE
         );

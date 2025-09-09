@@ -317,7 +317,7 @@ public class AlarmsViewModel extends AndroidViewModel {
 
         if (enabled) {
             Log.d("infoo", "the alarm id being scheduled is " + alarm.id);
-            AlarmScheduler.scheduleAlarm(context, alarm);
+            AlarmScheduler.scheduleAlarm(context, alarm,false);
 
         } else {
             Log.d("infoo", "the alarm id being canceled is " + alarm.id);

@@ -29,6 +29,7 @@ import com.etgames.alarmme.AdManager;
 import com.etgames.alarmme.FabViewModel;
 import com.etgames.alarmme.R;
 import com.etgames.alarmme.databinding.FragmentSettingsBinding;
+import com.google.android.material.slider.Slider;
 
 public class SettingsFragment extends Fragment {
 
@@ -118,6 +119,15 @@ public class SettingsFragment extends Fragment {
 
             }
         });
+
+        Slider slider = view.findViewById(R.id.maxVolumeSlider);
+        slider.setValue(prefs.getInt("max_volume",100));
+        slider.addOnChangeListener((s, value, fromUser) -> {
+            int maxVolume = (int) value;
+            Log.d("infoo", "the max volume set to: "+ maxVolume);
+            prefs.edit().putInt("max_volume",maxVolume).apply();
+        });
+
         if (prefs.getBoolean("adsOn", false)) {
 
             FrameLayout bannerContainer = binding.bannerContainer;

@@ -1,129 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground"
+    android:padding="16dp"
+    android:theme="@style/Base.Theme.ALARMAPP">
 
-    <FrameLayout
-        android:id="@+id/bannerContainer"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:gravity="bottom"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button3"
-        app:layout_constraintVertical_bias="0.95" />
+        android:theme="@style/Base.Theme.ALARMAPP">
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="392dp"
-        android:layout_height="wrap_content"
-        android:text="please give permission for notification access so it can read command messages received in whatsapp or discord, ignore it if done already permissions needed are \n 1) &quot;show on lock screen&quot; for triggering the allarm when the phone is locked  \n 2) &quot;display pop up from background&quot; for trigering the alarm when in backGround  \n 3) &quot;read notifications&quot; to be able to recognise the commands"
-        android:textSize="20sp"
-        android:theme="@style/Base.Theme.ALARMAPP"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.473"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.132" />
+        <!-- Instructions -->
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Please give permission for notification access so it can read command messages received in WhatsApp or Discord.\n\nPermissions needed:\n1. Show on Lock Screen\n2. Display pop-up from background\n3. Read notifications"
+            android:textSize="16sp"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="PermissionService"
-        android:text="Give Permission"
-        android:padding="10dp"
-        android:paddingStart="10dp"
-        android:paddingLeft="14dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="10dp"
-        android:paddingRight="14dp"
-        android:paddingBottom="10dp"
-        app:iconPadding="10dp"
-        app:iconSize="1dp"
-        android:textSize="14sp"
-        android:textColorLink="#2FFF0A"
-        android:theme="@style/Base.Theme.ALARMAPP"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/SetRingTone"
-        app:layout_constraintHorizontal_bias="0.369"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
-        app:layout_constraintVertical_bias="0.306" />
+        <!-- Two Buttons Side by Side -->
+        <LinearLayout
+            android:id="@+id/buttonRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView2">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/supportMe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="PermissionService"
-        android:padding="10dp"
-        android:paddingStart="10dp"
-        android:paddingLeft="14dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="10dp"
-        android:paddingRight="14dp"
-        android:paddingBottom="10dp"
-        android:text="Support Me"
-        android:textColorLink="#2FFF0A"
-        android:textSize="14sp"
-        android:theme="@style/Base.Theme.ALARMAPP"
-        app:iconPadding="10dp"
-        app:iconSize="1dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
-        app:layout_constraintVertical_bias="0.599" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button3"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:insetTop="12dp"
+                android:insetBottom="12dp"
+                app:cornerRadius="20dp"
+                android:text="Give Permission"
+                android:theme="@style/Base.Theme.ALARMAPP"
+                app:elevation="2dp" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/SetRingTone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Change RingTone"
-        android:padding="10dp"
-        android:paddingStart="10dp"
-        android:paddingLeft="14dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="10dp"
-        android:paddingRight="14dp"
-        android:paddingBottom="10dp"
-        app:iconPadding="10dp"
-        app:iconSize="1dp"
-        android:textSize="14sp"
-        android:theme="@style/Base.Theme.ALARMAPP"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.936"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
-        app:layout_constraintVertical_bias="0.306" />
+            <Space
+                android:layout_width="12dp"
+                android:layout_height="wrap_content"
+                android:theme="@style/Base.Theme.ALARMAPP" />
 
-    <TextView
-        android:id="@+id/textView5"
-        android:layout_width="361dp"
-        android:layout_height="wrap_content"
-        android:text="ads are when editing or creating a rule only, anything else is ad-free"
-        android:textSize="14sp"
-        android:theme="@style/Base.Theme.ALARMAPP"
-        app:layout_constraintBottom_toTopOf="@+id/bannerContainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/supportMe" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/SetRingTone"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:insetTop="12dp"
+                android:insetBottom="12dp"
+                app:cornerRadius="20dp"
+                android:text="Change RingTone"
+                android:theme="@style/Base.Theme.ALARMAPP"
+                app:elevation="2dp" />
+        </LinearLayout>
 
-    <Switch
-        android:id="@+id/enableAds"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="enable Ads"
-        app:layout_constraintBottom_toTopOf="@+id/supportMe"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.511"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button3"
-        app:layout_constraintVertical_bias="0.569" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Support Me Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/supportMe"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:insetTop="12dp"
+            android:insetBottom="12dp"
+            app:cornerRadius="20dp"
+            android:text="Support Me"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:elevation="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonRow" />
+
+        <!-- Max Volume Slider Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/volumeCard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/supportMe">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:theme="@style/Base.Theme.ALARMAPP">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Max Alarm Volume"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:theme="@style/Base.Theme.ALARMAPP" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/maxVolumeSlider"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:stepSize="1"
+                    android:theme="@style/Base.Theme.ALARMAPP"
+                    android:value="100"
+                    android:valueFrom="0"
+                    android:valueTo="100"
+                    app:labelBehavior="floating" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Enable Ads -->
+        <Switch
+            android:id="@+id/enableAds"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Enable Ads (only when editing rules)"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/volumeCard" />
+
+        <!-- Ads Note -->
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:text="Ads only appear when editing or creating a rule. Everything else is ad-free."
+            android:textAlignment="center"
+            android:textSize="14sp"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/enableAds" />
+
+        <!-- Banner Ad -->
+        <FrameLayout
+            android:id="@+id/bannerContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:theme="@style/Base.Theme.ALARMAPP"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
